@@ -83,6 +83,53 @@ public:
              << endl;
     }
 };
+
+class Graph 
+{
+private:
+
+    vector<vector<Road>> adjList;
+
+public:
+
+    Graph(int totalLocations)
+    {
+        adjList.resize(totalLocations);
+    }
+
+    void addRoad(Road road)
+    {
+        int source = road.getSrc();
+
+        if (source >= 0 && source < adjList.size()) {
+            adjList[source].push_back(road);
+        }
+    }
+
+    void showGraph() {
+        cout << "\n     ADJACENCY LIST      " << endl;
+
+        for (int i = 0; i < adjList.size(); i++) {
+            cout << "Location " << i << " : ";
+
+            if (adjList[i].empty()) {
+                cout << "   No outgoing roads   ";
+            }
+            else {
+                for (int j = 0; j < adjList[i].size(); j++) {
+                    cout << adjList[i][j].getDest();
+
+                    if (j != adjList[i].size() - 1) {
+                        cout << " -> ";
+                    }
+                }
+            }
+
+            cout << endl;
+        }
+    }
+};
+
 class NetworkSetup {
 public:
     vector<Location> nodes;
@@ -115,12 +162,19 @@ public:
         }
     }
 };
-int main() {
+int main() 
+{
     NetworkSetup demoMap;
     demoMap.buildSampleGraph();
+    Graph roadGraph(demoMap.nodes.size());
+    for (int i = 0; i < demoMap.edges.size(); i++)
+    {
+        roadGraph.addRoad(demoMap.edges[i]);
+    }
     demoMap.displayNetwork();
-    cout << "\n--- Updating Road Condition ---" << endl;
-    cout << "Simulating road block at Edge (3 -> 4)..." << endl;
+    roadGraph.showGraph();
+    cout << "\n     Updating Road Condition     " << endl;
+    cout << "   Simulating road block at Edge (3 -> 4)  " << endl;
     demoMap.edges[5].setBlocked(true);
     demoMap.edges[5].printRoad();
     return 0;
