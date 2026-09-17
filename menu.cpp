@@ -1,41 +1,31 @@
 #include<iostream>
 using namespace std;
 void displayMENU(){
-    cout<<"=================================================\n";
-    cout<<"ADAPTIVE EMERGENCY EVACUATION SYSTEM \n";
-    cout<<"1. Display Locations \n";
-    cout<<"2. Display Roads\n";
-    cout<< "3. Find Evacuation Route \n";
-    cout<< "4. Updated Road Condition\n";
-    cout<<"5. Exit \n";
-
-
-    cout<<"\n ENTER YOUR CHOICE :";
+    cout<<"ADAPTIVE EMERGENCY EVACUATION SYSTEM "<<endl;
+    cout<<"1. Display Locations "<<endl;
+    cout<<"2. Display Roads"<<endl;
+    cout<< "3. Find Evacuation Route"<<endl;
+    cout<< "4. Updated Road Condition"<<endl;
+    cout<<"5. Exit"<<endl;
+    cout<<"ENTER YOUR CHOICE :"<<endl;
 }
 int main(){
     int choice;
-    
-
-
     do {
         displayMENU();
         cin>>choice;
-
-    
 switch(choice){
-    case 1: cout<<"\n Display locations ....\n";
+    case 1: cout<<" Display locations "<<endl;
          break;
-    case 2: cout<<"\n Displaying  Roads ....\n";
+    case 2: cout<< "Displaying  Roads"<<endl;
          break;
-    case 3: cout<<"\n Finding best evacuation route...\n";
+    case 3: cout<<" Finding best evacuation route"<<endl;
          break;
-    case 4: cout<<"\n Updating road condition ...\n";
+    case 4: cout<<" Updating road condition"<<endl;
          break;
-    case 5: cout<<"\n  Thank you for using the system !\n";
+    case 5: cout<<"Thank you for using the system !"<<endl;
          break;
-
-    default:cout<<"\n Invalid choice!! Please try again ";
-
+    default:cout<<"Invalid choice!! Please try again "<<endl;
 }
     }
 while(choice!=5);
