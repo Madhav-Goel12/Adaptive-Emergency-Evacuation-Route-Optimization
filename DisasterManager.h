@@ -1,13 +1,10 @@
 #ifndef DISASTER_MANAGER_H
 #define DISASTER_MANAGER_H
-
 #include "Graph.h"
 #include "Road.h"
-
 class DisasterManager
 {
 public:
-
     void updateRoad(Graph &g,int u,int v,int st)
     {
         for(int i=0;i<g.roads.size();i++)
@@ -16,7 +13,6 @@ public:
                (g.roads[i].src==v&&g.roads[i].des==u))
             {
                 g.roads[i].sts=st;
-
                 if(st==1)
                 {
                     g.roads[i].cost=g.roads[i].dis;
@@ -33,12 +29,10 @@ public:
                 {
                     g.roads[i].cost=g.roads[i].dis*3;
                 }
-
                 return;
             }
         }
     }
-
     void showRoad(Graph &g)
     {
         for(int i=0;i<g.roads.size();i++)
@@ -54,10 +48,8 @@ public:
                 cout<<"Blocked";
             else if(g.roads[i].sts==4)
                 cout<<"Congested";
-
             cout<<" Cost: "<<g.roads[i].cost<<endl;
         }
     }
 };
-
 #endif
