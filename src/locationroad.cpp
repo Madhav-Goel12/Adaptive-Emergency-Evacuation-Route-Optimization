@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+
 class Location {
 private:
     int locationId;
@@ -37,6 +38,7 @@ public:
              << endl;
     }
 };
+
 class Road {
 private:
     int u;            
@@ -87,11 +89,9 @@ public:
 class Graph 
 {
 private:
-
     vector<vector<Road>> adjList;
 
 public:
-
     Graph(int totalLocations)
     {
         adjList.resize(totalLocations);
@@ -100,15 +100,13 @@ public:
     void addRoad(Road road)
     {
         int source = road.getSrc();
-
         if (source >= 0 && source < adjList.size()) {
             adjList[source].push_back(road);
         }
     }
 
     void showGraph() {
-        cout << "\n     ADJACENCY LIST      " << endl;
-
+        cout << "\n    ADJACENCY LIST      " << endl;
         for (int i = 0; i < adjList.size(); i++) {
             cout << "Location " << i << " : ";
 
@@ -118,13 +116,11 @@ public:
             else {
                 for (int j = 0; j < adjList[i].size(); j++) {
                     cout << adjList[i][j].getDest();
-
                     if (j != adjList[i].size() - 1) {
                         cout << " -> ";
                     }
                 }
             }
-
             cout << endl;
         }
     }
@@ -162,7 +158,8 @@ public:
         }
     }
 };
-int main() 
+
+void testNetworkSetup() 
 {
     NetworkSetup demoMap;
     demoMap.buildSampleGraph();
@@ -173,9 +170,8 @@ int main()
     }
     demoMap.displayNetwork();
     roadGraph.showGraph();
-    cout << "\n     Updating Road Condition     " << endl;
-    cout << "   Simulating road block at Edge (3 -> 4)  " << endl;
+    cout << "\n    Updating Road Condition     " << endl;
+    cout << "  Simulating road block at Edge (3 -> 4)  " << endl;
     demoMap.edges[5].setBlocked(true);
     demoMap.edges[5].printRoad();
-    return 0;
 }

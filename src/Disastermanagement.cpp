@@ -1,52 +1,88 @@
 #include "DisasterManager.h"
-void DisasterManager::updateRoad(Graph &g,int u,int v,int st)
-{
-int n=g.roads.size();
-for(int i=0;i<n;i++)
-{
-if(g.roads[i].src==u&&g.roads[i].des==v)
-{
-g.roads[i].sts=st;
-if(st==1)
-g.roads[i].cost=g.roads[i].dis;
-else if(st==2)
-g.roads[i].cost=g.roads[i].dis*2;
-else if(st==3)
-g.roads[i].cost=9999;
-else if(st==4)
-g.roads[i].cost=g.roads[i].dis*3;
-return;
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+void DisasterManager::updateRoad(Graph &g, int u, int v, int st) {
+    vector<vector<Road>>& adjList = g.getAdjList();
+    bool found = false;
+
+    // 1. Update the road from u to v
+    if (u >= 0 && u < adjList.size()) {
+        for (size_t i = 0; i < adjList[u].size(); i++) {
+            if (adjList[u][i].getDest() == v) { // Used getDest() instead of .des
+                if (st == 1) { // Safe
+                    adjList[u][i].setBlocked(false);
+                    adjList[u][i].setHazardLevel(1.0);
+                } else if (st == 2) { // Risky
+                    adjList[u][i].setBlocked(false);
+                    adjList[u][i].setHazardLevel(2.0); // Cost will be multiplied by 2
+                } else if (st == 3) { // Blocked
+                    adjList[u][i].setBlocked(true);
+                    adjList[u][i].setHazardLevel(9999.0);
+                } else if (st == 4) { // Congested
+                    adjList[u][i].setBlocked(false);
+                    adjList[u][i].setHazardLevel(3.0); // Cost will be multiplied by 3
+                }
+                found = true;
+                break;
+            }
+        }
+    }
+
+    // 2. Update the road from v to u (for two-way streets)
+    if (v >= 0 && v < adjList.size()) {
+        for (size_t i = 0; i < adjList[v].size(); i++) {
+            if (adjList[v][i].getDest() == u) { // Used getDest() instead of .des
+                if (st == 1) { 
+                    adjList[v][i].setBlocked(false);
+                    adjList[v][i].setHazardLevel(1.0);
+                } else if (st == 2) { 
+                    adjList[v][i].setBlocked(false);
+                    adjList[v][i].setHazardLevel(2.0); 
+                } else if (st == 3) { 
+                    adjList[v][i].setBlocked(true);
+                    adjList[v][i].setHazardLevel(9999.0);
+                } else if (st == 4) { 
+                    adjList[v][i].setBlocked(false);
+                    adjList[v][i].setHazardLevel(3.0); 
+                }
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        cout << "Road not found" << endl;
+    }
 }
-if(g.roads[i].src==v&&g.roads[i].des==u)
-{
-g.roads[i].sts=st;
-if(st==1)
-g.roads[i].cost=g.roads[i].dis;
-else if(st==2)
-g.roads[i].cost=g.roads[i].dis*2;
-else if(st==3)
-g.roads[i].cost=9999;
-else if(st==4)
-g.roads[i].cost=g.roads[i].dis*3;
-return;
-}
-}
-cout<<"Road not found"<<endl;
-}
-void DisasterManager::showRoad(Graph &g)
-{
-int n=g.roads.size();
-for(int i=0;i<n;i++)
-{
-cout<<g.roads[i].src<<" -> "<<g.roads[i].des<<" ";
-if(g.roads[i].sts==1)
-cout<<"Safe";
-else if(g.roads[i].sts==2)
-cout<<"Risky";
-else if(g.roads[i].sts==3)
-cout<<"Blocked";
-else if(g.roads[i].sts==4)
-cout<<"Congested";
-cout<<" Cost: "<<g.roads[i].cost<<endl;
-}
+
+void DisasterManager::showRoad(Graph &g) {
+    vector<vector<Road>>& adjList = g.getAdjList();
+    
+    for (size_t i = 0; i < adjList.size(); i++) {
+        for (size_t j = 0; j < adjList[i].size(); j++) {
+            // Using getSrc() and getDest() instead of .src and .des
+            cout << adjList[i][j].getSrc() << " -> " << adjList[i][j].getDest() << " Status: ";
+            
+            // Check status based on the methods available in Road.h
+            if (adjList[i][j].getBlockedStatus()) {
+                cout << "Blocked";
+            } else {
+                // If not blocked, we determine status by comparing the base time vs the calculated cost
+                double baseTime = adjList[i][j].getTime();
+                double totalCost = adjList[i][j].getCost();
+                
+                if (totalCost == baseTime) cout << "Safe";
+                else if (totalCost == baseTime * 2) cout << "Risky";
+                else if (totalCost == baseTime * 3) cout << "Congested";
+                else cout << "Unknown";
+            }
+            
+            // Output final cost
+            cout << " | Cost: " << adjList[i][j].getCost() << endl;
+        }
+    }
 }

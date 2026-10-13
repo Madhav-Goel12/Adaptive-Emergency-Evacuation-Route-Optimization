@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -38,8 +37,7 @@ vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& graph) {
 
     return dist;
 }
-
-int main() {
+void testDijkstra() {
     int n = 5;
     vector<vector<pair<int, int>>> graph(n);
 
@@ -64,6 +62,4 @@ int main() {
 
         cout << endl;
     }
-
-    return 0;
 }

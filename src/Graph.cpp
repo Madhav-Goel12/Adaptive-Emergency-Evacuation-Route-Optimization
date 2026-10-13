@@ -1,9 +1,15 @@
 #include "Graph.h"
 
+// Added default constructor
+Graph::Graph() 
+{
+}
+
 Graph::Graph(int totalLocations) 
 {
     adjList.resize(totalLocations);
 }
+
 void Graph::addRoad(Road road) 
 {
     int source = road.getSrc();
@@ -12,11 +18,12 @@ void Graph::addRoad(Road road)
         adjList[source].push_back(road);
     }
 }
+
 void Graph::showGraph() 
 {
-    cout << "\n     ADJACENCY LIST      " << endl;
+    cout << "\n    ADJACENCY LIST      " << endl;
 
-    for (int i = 0; i < adjList.size(); i++) 
+    for (size_t i = 0; i < adjList.size(); i++) 
     {
         cout << "Location " << i << " : ";
         if (adjList[i].empty()) 
@@ -25,7 +32,7 @@ void Graph::showGraph()
         }
         else 
         {
-            for (int j = 0; j < adjList[i].size(); j++) 
+            for (size_t j = 0; j < adjList[i].size(); j++) 
             {
                 cout << adjList[i][j].getDest();
                 if (j != adjList[i].size() - 1) {
@@ -35,4 +42,10 @@ void Graph::showGraph()
         }
         cout << endl;
     }
+}
+
+
+vector<vector<Road>>& Graph::getAdjList() 
+{
+    return adjList;
 }

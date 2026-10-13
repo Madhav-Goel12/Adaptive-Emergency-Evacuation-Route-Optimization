@@ -5,13 +5,18 @@
 #include <vector>
 #include "Road.h"
 using namespace std;
-class Graph 
+class Graph
 {
 private:
     vector<vector<Road>> adjList;
+
 public:
-    Graph(int totalLocations);
+    Graph(); 
+    Graph(int totalLocations); 
+    
     void addRoad(Road road);
     void showGraph();
+    vector<vector<Road>>& getAdjList();
 };
+
 #endif
