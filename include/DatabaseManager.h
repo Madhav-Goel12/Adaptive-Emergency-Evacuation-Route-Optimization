@@ -1,4 +1,4 @@
-```cpp
+
 #ifndef DATABASE_MANAGER_H
 #define DATABASE_MANAGER_H
 
@@ -55,4 +55,3 @@ public:
 };
 
 #endif
-```
