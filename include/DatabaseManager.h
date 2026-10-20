@@ -1,4 +1,3 @@
-
 #ifndef DATABASE_MANAGER_H
 #define DATABASE_MANAGER_H
 
@@ -34,13 +33,14 @@ public:
         double longitude
     );
 
-    bool saveRoad(
-        int roadId,
-        int fromLocation,
-        int toLocation,
-        double distance,
-        bool blocked
-    );
+   bool saveRoad(
+    int roadId,
+    int fromLocation,
+    int toLocation,
+    double distance,
+    int status,
+    double cost
+);
 
     bool saveEvacuationLog(
         const std::string& eventType,

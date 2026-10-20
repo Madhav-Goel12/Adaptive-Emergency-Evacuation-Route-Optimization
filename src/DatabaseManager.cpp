@@ -1,14 +1,10 @@
-
 #include "DatabaseManager.h"
-
 #include <chrono>
 #include <cstdint>
 #include <iostream>
-
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/builder/basic/kvp.hpp>
 #include <bsoncxx/types.hpp>
-
 #include <mongocxx/exception/exception.hpp>
 #include <mongocxx/options/replace.hpp>
 
@@ -69,7 +65,8 @@ bool DatabaseManager::saveRoad(
     int fromLocation,
     int toLocation,
     double distance,
-    bool blocked
+    int status,
+    double cost
 ) {
     try {
         auto collection = database["roads"];
@@ -80,7 +77,9 @@ bool DatabaseManager::saveRoad(
             kvp("fromLocation", fromLocation),
             kvp("toLocation", toLocation),
             kvp("distance", distance),
-            kvp("blocked", blocked)
+            kvp("status", status),
+            kvp("cost", cost),
+            kvp("blocked", status == 3)
         );
 
         mongocxx::options::replace options;

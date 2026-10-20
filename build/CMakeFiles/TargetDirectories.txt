@@ -1,0 +1,3 @@
+/workspaces/Adaptive-Emergency-Evacuation-Route-Optimization/build/CMakeFiles/evacuation_app.dir
+/workspaces/Adaptive-Emergency-Evacuation-Route-Optimization/build/CMakeFiles/edit_cache.dir
+/workspaces/Adaptive-Emergency-Evacuation-Route-Optimization/build/CMakeFiles/rebuild_cache.dir

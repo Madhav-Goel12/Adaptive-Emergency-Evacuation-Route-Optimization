@@ -1,62 +1,73 @@
 #include "RouteOptimizer.h"
-#include "PriorityQueue.h"
-#include "PathReconstruction.h"
-#include <vector>
+#include "priorityqueue.h"
+#include <algorithm>
+#include <cmath>
 #include <limits>
+#include <vector>
+
 using namespace std;
 
 vector<int> RouteOptimizer::findRoute(Graph &g, int src, int des, double &totalCost)
 {
     vector<vector<Road>>& adj = g.getAdjList();
-    int n = adj.size();
-    vector<double> dist(n, numeric_limits<double>::max());
+    const int n = static_cast<int>(adj.size());
+
+    totalCost = -1;
+    if (src < 0 || des < 0 || src >= n || des >= n)
+        return {};
+
+    vector<double> dist(n, numeric_limits<double>::infinity());
     vector<int> parent(n, -1);
     PriorityQueue pq;
-    dist[src] = 0;
-    pq.push(src, 0);
-    while(!pq.empty())
-    {
+
+    dist[src] = 0.0;
+    pq.push(src, 0.0);
+
+    while (!pq.empty()) {
         PQNode cur = pq.pop();
         int u = cur.node;
-        if(cur.cost != dist[u])
+
+        if (u < 0 || u >= n)
             continue;
-        if(u == des)
+        if (cur.cost != dist[u])
+            continue;
+        if (u == des)
             break;
-        for(int i = 0; i < adj[u].size(); i++)
-        {
-            Road &road = adj[u][i];
-            if(road.getBlockedStatus())
-            continue;
+
+        for (auto &road : adj[u]) {
+            if (road.getBlockedStatus())
+                continue;
+
             int v = road.getDest();
-            double cost = road.getCost();
-            if(dist[u] + cost < dist[v])
-            {
-                dist[v] = dist[u] + cost;
+            if (v < 0 || v >= n)
+                continue;
+
+            double edgeCost = road.getCost();
+            if (edgeCost < 0)
+                continue;
+
+            if (dist[u] + edgeCost < dist[v]) {
+                dist[v] = dist[u] + edgeCost;
                 parent[v] = u;
                 pq.push(v, dist[v]);
             }
         }
     }
-    if(dist[des] == numeric_limits<double>::max())
-    {
-        totalCost = -1;
+
+    if (!std::isfinite(dist[des]))
         return {};
-    }
-    totalCost = dist[des];
+
     vector<int> path;
-    int cur = des;
-    while(cur != -1)
-    {
+    for (int cur = des; cur != -1; cur = parent[cur]) {
         path.push_back(cur);
-        if(cur == src)
+        if (cur == src)
             break;
-        cur = parent[cur];
     }
-    if(path.back() != src)
-    {
-        totalCost = -1;
+
+    if (path.empty() || path.back() != src)
         return {};
-    }
+
     reverse(path.begin(), path.end());
+    totalCost = dist[des];
     return path;
-}\
+}
