@@ -1,4 +1,3 @@
-
 #include "PathReconstruction.h"
 #include <algorithm>
 #include <vector>

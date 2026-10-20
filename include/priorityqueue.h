@@ -5,14 +5,14 @@ using namespace std;
 struct PQNode
 {
 int node;
-int cost;
+double cost;
 };
 class PriorityQueue
 {
 private:
 vector<PQNode> q;
 public:
-void push(int node,int cost);
+void push(int node,double cost);
 PQNode pop();
 bool empty();
 };

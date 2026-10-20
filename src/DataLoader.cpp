@@ -1,4 +1,3 @@
- 
 #include "Graph.h"
 #include <iostream>
 #include <fstream>
@@ -124,3 +123,4 @@ Graph loadGraphFromJSON(const string& filename)
 
     return graph;
 }
+

@@ -1,52 +1,51 @@
 #include "priorityqueue.h"
-void PriorityQueue::push(int node,int cost)
+#include <algorithm>
+#include <stdexcept>
+
+void PriorityQueue::push(int node, double cost)
 {
-PQNode x;
-x.node=node;
-x.cost=cost;
+    q.push_back({node, cost});
+    int i = static_cast<int>(q.size()) - 1;
 
-q.push_back(x);
-
-int i=q.size()-1;
-
-while(i>0)
-{
-int p=(i-1)/2;
-
-if(q[p].cost<=q[i].cost)
-break;
-
-swap(q[p],q[i]);
-i=p;
-}
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (q[parent].cost <= q[i].cost)
+            break;
+        std::swap(q[parent], q[i]);
+        i = parent;
+    }
 }
 
 PQNode PriorityQueue::pop()
 {
-PQNode x=q[0];
+    if (q.empty())
+        throw std::out_of_range("PriorityQueue::pop called on empty queue");
 
-q[0]=q.back();
-q.pop_back();
+    PQNode result = q.front();
+    q.front() = q.back();
+    q.pop_back();
 
-int i=0;
+    int i = 0;
+    const int n = static_cast<int>(q.size());
+    while (true) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        int smallest = i;
 
-while(true)
-{
-int l=2*i+1;
-int r=2*i+2;
-int s=i;
-if(l<q.size()&&q[l].cost<q[s].cost)
-s=l;
-if(r<q.size()&&q[r].cost<q[s].cost)
-s=r;
-if(s==i)
-break;
-swap(q[i],q[s]);
-i=s;
+        if (left < n && q[left].cost < q[smallest].cost)
+            smallest = left;
+        if (right < n && q[right].cost < q[smallest].cost)
+            smallest = right;
+        if (smallest == i)
+            break;
+
+        std::swap(q[i], q[smallest]);
+        i = smallest;
+    }
+    return result;
 }
-return x;
-}
+
 bool PriorityQueue::empty()
 {
-return q.empty();
+    return q.empty();
 }
