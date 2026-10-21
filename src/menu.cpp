@@ -9,6 +9,8 @@
 #include "Graph.h"
 #include "RouteOptimizer.h"
 #include "Road.h"
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/types.hpp>
 
 using namespace std;
 
@@ -32,21 +34,91 @@ static void clearInput()
 int main()
 {
     // Small demonstration network; replace with DataLoader when JSON schema is finalized.
-    Graph graph(6);
-    graph.addRoad(Road(0, 1, 12.5));
-    graph.addRoad(Road(0, 2, 8.0));
-    graph.addRoad(Road(1, 3, 15.0));
-    graph.addRoad(Road(2, 3, 6.5));
-    graph.addRoad(Road(2, 4, 22.0));
-    graph.addRoad(Road(3, 4, 10.0));
-    graph.addRoad(Road(3, 5, 18.0));
+    // Small demonstration network; replace with DataLoader when JSON schema is finalized.
+Graph graph(6);
 
+const char* uriEnv = std::getenv("MONGODB_URI");
+const char* dbEnv = std::getenv("MONGODB_DATABASE");
+
+bool dbConfigured =
+    uriEnv && *uriEnv && dbEnv && *dbEnv;
+
+bool roadsLoaded = false;
+
+if (dbConfigured) {
+    try {
+        DatabaseManager db(uriEnv, dbEnv);
+
+        if (db.ping()) {
+            auto roads = db.getAllRoads();
+
+for (const auto& document : roads) {
+                auto view = document.view();
+
+                auto fromElement = view["fromLocation"];
+                auto toElement = view["toLocation"];
+                auto distanceElement = view["distance"];
+                auto statusElement = view["status"];
+
+                if (!fromElement || !toElement || !distanceElement || !statusElement) {
+                    continue;
+                }
+
+                int u = (fromElement.type() == bsoncxx::type::k_int32) ? fromElement.get_int32().value : static_cast<int>(fromElement.get_double().value);
+                int v = (toElement.type() == bsoncxx::type::k_int32) ? toElement.get_int32().value : static_cast<int>(toElement.get_double().value);
+                double distance = (distanceElement.type() == bsoncxx::type::k_double) ? distanceElement.get_double().value : static_cast<double>(distanceElement.get_int32().value);
+                int status = (statusElement.type() == bsoncxx::type::k_int32) ? statusElement.get_int32().value : static_cast<int>(statusElement.get_double().value);
+
+                if (u < 0 || u >= 6 || v < 0 || v >= 6 || u == v || status < 1 || status > 4 || distance <= 0) {
+                    continue;
+                }
+
+                double hazard = 1.0;
+                if (status == 2) hazard = 2.0;
+                if (status == 4) hazard = 3.0;
+
+                Road road1(u, v, distance, hazard);
+                Road road2(v, u, distance, hazard); // Add reverse edge for 2-way road
+
+                if (status == 3) {
+                    road1.setBlocked(true);
+                    road2.setBlocked(true);
+                }
+
+                graph.addRoad(road1);
+                graph.addRoad(road2);
+            }
+
+            roadsLoaded = !roads.empty();
+            if (roadsLoaded) {
+                cout << "Loaded road records from MongoDB.\n";
+            }
+        }
+    } catch (const std::exception& e) {
+        cerr << "Could not load roads from MongoDB: " << e.what() << '\n';
+    }
+}
+
+if (!roadsLoaded) {
+    cout << "Using the demonstration road network.\n";
+
+    // Helper lambda to add undirected (two-way) roads
+    auto addTwoWay = [&](int u, int v, double time) {
+        graph.addRoad(Road(u, v, time));
+        graph.addRoad(Road(v, u, time));
+    };
+
+    addTwoWay(0, 1, 12.5);
+    addTwoWay(0, 2, 8.0);
+    addTwoWay(1, 3, 15.0);
+    addTwoWay(2, 3, 6.5);
+    addTwoWay(2, 4, 22.0);
+    addTwoWay(3, 4, 10.0);
+    addTwoWay(3, 5, 18.0);
+}
     RouteOptimizer optimizer;
     DisasterManager disasterManager;
 
-    const char* uriEnv = std::getenv("MONGODB_URI");
-    const char* dbEnv = std::getenv("MONGODB_DATABASE");
-    bool dbConfigured = uriEnv && *uriEnv && dbEnv && *dbEnv;
 
     // Create DB manager only when credentials are configured.
     // mongocxx::instance is static inside DatabaseManager.
