@@ -1,123 +1,256 @@
 # Adaptive Emergency Evacuation Route Optimization
 
-An intelligent emergency response navigation system built in C++ that dynamically calculates safe evacuation routes during disasters (floods, fires, and road blockages) using graph theory and shortest-path algorithms.
+An emergency-response navigation system built in C++ that calculates minimum-cost evacuation routes using graph theory, Dijkstra's algorithm, a priority queue, MongoDB persistence, and live weather data from the Open-Meteo API.
 
 ---
 
-##  Project Overview
+## Project Overview
 
-During severe emergencies, standard GPS routes can become hazardous or impassable due to sudden road damage, active hazard zones, or traffic jams. Traditional static routing systems fail to adapt to changing conditions.
+During emergencies such as floods, fires, and road blockages, ordinary routes may become hazardous or impassable. This project models a road network as a weighted graph and calculates routes based on road connections and associated costs.
 
-This project models a city road network as a **dynamic weighted graph**. It computes evacuation routes using **Dijkstra's Algorithm combined with a Priority Queue**. When road conditions change, edge weights are updated to help recalculate safer alternate paths.
+The application supports road-condition updates, MongoDB storage, and weather-data retrieval through an external API. These components provide the foundation for an adaptive evacuation-routing system.
 
----
+## Project Progress & Implementation Status
 
-##  Project Progress & Compilation Status
-
-**Overall Backend Progress: Approximately 70–75%**
-
-The core backend modules and route optimization logic have been developed. The remaining work mainly involves database integration, testing, error handling, and frontend development.
+The core C++ backend has been implemented, MongoDB connectivity and road-data loading have been integrated, and the weather API has been tested successfully.
 
 ### Implementation Checklist
 
-- [x] **Location Module** — Represents locations in the road network.
-- [x] **Road Module** — Represents roads and their associated properties.
-- [x] **Graph Module** — Represents the road network using an adjacency list.
-- [x] **Dijkstra's Algorithm** — Calculates shortest paths using weighted edges.
-- [x] **Priority Queue** — Supports efficient selection of the next node during route calculation.
-- [x] **Route Optimization Logic** — Determines routes based on road weights.
-- [x] **Disaster Manager** — Handles changes in road conditions, including safe, risky, congested, and blocked roads.
-- [x] **Weather API Integration** — Weather-related integration has been developed; live API reliability and end-to-end behaviour require testing.
-- [ ] **MongoDB Integration** — Complete database connectivity and data persistence.
-- [ ] **End-to-End Testing** — Test route calculations, changing road conditions, and alternate routes.
-- [ ] **Error Handling** — Improve handling of invalid inputs, API failures, and unavailable routes.
-- [ ] **Frontend Development** — Build the user interface for entering locations and viewing routes.
-- [ ] **Map Visualization** — Display the road network and calculated evacuation routes visually.
-- [ ] **Final Integration and Demonstration** — Validate the complete system.
-
-**Compilation Note:** The core backend modules have been developed. A fresh build is required to confirm that the complete project compiles successfully together. Individual implementation completion does not necessarily mean every module has passed compilation and integration testing.
+- **Location Module** — Represents locations in the road network.
+- **Road Module** — Represents roads, their distances, and associated properties.
+- **Graph Module** — Represents the road network using an adjacency list.
+- **Dijkstra's Algorithm** — Calculates minimum-cost routes for non-negative edge weights.
+- **Priority Queue** — Efficiently selects the next vertex with the smallest tentative cost.
+- **Route Optimization** — Finds a route between source and destination locations.
+- **Disaster Manager** — Supports road-condition updates for safe, risky, blocked, and congested roads.
+- **MongoDB Integration** — Connects to MongoDB Atlas, loads road records, and supports saving road-condition updates.
+- **Weather API Integration** — Uses the Open-Meteo API through libcurl to retrieve temperature, precipitation, wind speed, and weather code.
+- **Weather Status Calculation** — Classifies conditions using configured rainfall and wind-speed thresholds.
+- **Build Configuration** — CMake configures the C++ application and its MongoDB and CURL dependencies.
+- **Menu-Driven Interface** — Provides options to display the road network, find routes, update road conditions, test MongoDB connectivity, and check live weather.
+- **End-to-End Testing** — Initial functional tests have been performed; broader testing remains necessary.
+- **Frontend and Map Visualization** — Planned future development.
 
 ---
 
-##  System Architecture & Execution Pipeline
+## Technology Stack
 
-### [1] USER INPUT
-- Receives the origin node (start location).
-- Receives the destination node (evacuation centre or safe zone).
-
-↓
-
-### [2] ROAD NETWORK DATA
-- Represents locations as graph nodes using `Location` objects.
-- Represents connections as edges using `Road` objects.
-- Assigns weights based on road properties and conditions.
-
-↓
-
-### [3] DIJKSTRA'S ALGORITHM + PRIORITY QUEUE
-- Evaluates paths using a priority queue.
-- Calculates the minimum-cost route based on the current edge weights.
-
-↓
-
-### [4] INITIAL BEST ROUTE
-- Establishes the initial evacuation route.
-- Route output is handled by the backend; a graphical route display is planned for the frontend.
-
-↓
-
-### [5] ROAD CONDITION UPDATE
-- Handles changes such as road blockages, flooding, or increased risk.
-- Updates the affected road's status or associated cost.
-
-↓
-
-### [6] ALTERNATE ROUTE RECALCULATION
-- Recalculates the route using the updated graph weights.
-- Finds an alternate path when a suitable route is available.
+| Technology | Purpose |
+|---|---|
+| C++ | Core application and routing logic |
+| Graphs and adjacency lists | Represent the road network |
+| Dijkstra's algorithm | Calculate minimum-cost routes |
+| Priority queue | Select the next lowest-cost vertex |
+| MongoDB Atlas | Store and retrieve road records |
+| MongoDB C++ Driver | Connect the C++ application to MongoDB |
+| Open-Meteo API | Retrieve weather information |
+| libcurl | Make HTTP requests to the weather API |
+| CMake | Configure and build the application |
 
 ---
 
-##  Key Features
+## System Architecture & Execution Pipeline
 
-- **Dynamic Edge Weighting:** Adjusts route costs according to road conditions, risk levels, and blockage status.
-- **Safety Centre Routing:** Supports routing towards designated evacuation zones and medical centres.
-- **Alternate Route Calculation:** Recalculates routes when road conditions change.
-- **Weather Integration:** Incorporates weather-related information through API integration.
-- **Object-Oriented Design:** Uses modular C++ classes for maintainable code.
-- **Modular Backend:** Separates graph representation, road data, location data, disaster management, and route optimization.
+### 1. Application Input
+
+The user interacts with the menu-driven C++ application to display the network, request an evacuation route, update a road condition, test MongoDB connectivity, or retrieve weather information.
+
+### 2. Road Network Data
+
+Locations are represented as graph vertices, while roads are represented as weighted edges. The graph uses an adjacency list to store connections.
+
+Road records are loaded from the MongoDB `roads` collection when database configuration and connectivity are available. A demonstration network is used when road records are not successfully loaded.
+
+### 3. Route Optimization
+
+Dijkstra's algorithm works with a priority queue to find a minimum-cost path between the requested source and destination.
+
+The result includes the selected route and its calculated total cost. The route is based on the edge weights and road conditions represented in the graph.
+
+### 4. Road-Condition Management
+
+The Disaster Manager supports road-condition updates using the following statuses:
+
+- **Safe**
+- **Risky**
+- **Blocked**
+- **Congested**
+
+Updates can be saved to MongoDB, allowing road information to persist beyond the current application session.
+
+### 5. Weather API Integration
+
+The API client sends an HTTP request to Open-Meteo using latitude and longitude coordinates. The response supplies current weather information, including:
+
+- Temperature in degrees Celsius
+- Precipitation in millimetres
+- Wind speed in kilometres per hour
+- Weather code
+
+The application parses these values and calculates a weather status using configured thresholds.
+
+### 6. Route Recalculation
+
+The route optimizer can calculate routes using the graph's current edge costs. After road conditions are updated, the application can be tested to determine whether the in-memory graph reflects those changes correctly and whether the new route is appropriate.
+
+**Current integration boundary:** Weather data retrieval and weather-status calculation are working, but automatic propagation of weather results into MongoDB road records and automatic weather-driven rerouting are not yet established as completed features.
 
 ---
 
-## 🛠️ Data Structures & Algorithms Used
+## MongoDB Integration
 
-- **Graph Representation:** Adjacency list for storing locations and road connections.
-- **Priority Queue / Min-Heap:** Helps select the next node with the lowest tentative cost.
-- **Dijkstra's Algorithm:** Computes minimum-cost paths for non-negative edge weights.
-- **Object-Oriented Programming:** Uses classes such as `Location`, `Road`, `Graph`, and `RouteOptimizer`.
-- **Dynamic Edge Weights:** Represents changing road conditions through adjusted route costs.
+MongoDB Atlas is used as the persistent data store for road information.
+
+### Database Structure
+
+- **Database:** `evacuation_db`
+- **Collection:** `roads`
+
+Road documents use fields such as:
+
+- `fromLocation` — Starting location ID
+- `toLocation` — Destination location ID
+- `distance` — Road distance or base cost
+- `status` — Road-condition status
+
+### Implemented Functionality
+
+- MongoDB connectivity testing.
+- Retrieval of road documents from the collection.
+- Conversion of database road records into graph edges.
+- Representation of two-way roads using forward and reverse edges.
+- Support for road-condition updates through the Disaster Manager and database manager.
+- Persistence of road updates for subsequent retrieval.
+
+Database credentials and connection strings are supplied through environment variables, rather than hard-coded into the application source code.
+
+The application uses `MONGODB_URI` and `MONGODB_DATABASE` for database configuration.
 
 ---
 
-##  Current Limitations
+## Weather API Integration
 
-- The frontend and interactive map view have not yet been implemented.
-- Live traffic and real-time road blockage data are not yet fully integrated.
-- MongoDB connectivity and persistence need to be completed and validated.
-- Full end-to-end testing and final integration are pending.
+The application integrates the Open-Meteo forecast API using libcurl.
+
+### Weather Data Flow
+
+1. The user selects the weather API option.
+2. The application requests latitude and longitude coordinates.
+3. The API client sends an HTTP request to Open-Meteo.
+4. The response is parsed to extract current weather fields.
+5. The application displays the weather information and calculated status.
+
+### Weather Status Rules
+
+The current implementation calculates status from rainfall and wind speed:
+
+| Condition | Calculated status |
+|---|---|
+| Rainfall ≥ 10 mm or wind ≥ 60 km/h | Blocked |
+| Rainfall ≥ 5 mm or wind ≥ 40 km/h | Congested |
+| Rainfall ≥ 2 mm or wind ≥ 25 km/h | Risky |
+| Otherwise | Safe |
+
+The application checks the most severe threshold first. These are configurable demonstration rules and should not be interpreted as official emergency classifications.
+
+The API has been tested successfully with coordinates for Meerut, and it returned non-zero weather values. Additional testing across different locations and weather conditions is recommended.
 
 ---
 
-##  Future Scope
+## Data Structures and Algorithms
 
-- Complete MongoDB integration for storing locations, roads, weather information, emergencies, and routes.
-- Develop an interactive frontend with map-based route visualization.
-- Integrate more reliable live weather, traffic, and road-condition data.
-- Improve error handling, route validation, and system testing.
-- Extend the system to support larger road networks and additional emergency scenarios.
+### Graph Representation
+
+The road network is represented using an adjacency list. Each location stores its neighboring locations, making traversal efficient for a relatively sparse road network.
+
+### Dijkstra's Algorithm
+
+Dijkstra's algorithm finds minimum-cost paths when edge weights are non-negative. It is appropriate for this application because the route optimizer works with weighted road connections.
+
+### Priority Queue
+
+A min-priority queue allows the algorithm to process the vertex with the smallest tentative route cost first.
+
+### Dynamic Road Costs
+
+Road-condition information can affect the cost or availability of a road. Risky or congested roads can be assigned higher costs, while blocked roads should be excluded from usable routes.
+
+The correctness of the final route depends on ensuring that the in-memory graph and route optimizer consistently enforce these rules.
 
 ---
 
-##  Project Status
+## Running the Application
 
-The project is currently focused on completing and validating the backend. The main graph structures and route optimization components have been developed, with approximately **70–75% of the backend work completed**. Database integration, comprehensive testing, frontend development, and map visualization remain part of the upcoming work.
+From the project root in GitHub Codespaces, build the project:
+
+```bash
+cmake --build build -j2
+```
+
+Load the environment variables and run the application:
+
+```bash
+set -a && source .env && set +a && ./build/evacuation_app
+```
+
+### Menu Options
+
+1. Display road network
+2. Find evacuation route
+3. Update road condition and save to MongoDB
+4. Test MongoDB connection
+5. Check live weather API
+6. Exit
+
+For the weather option, enter the latitude and longitude of the location to check.
+
+**Security note:** Keep `.env` out of version control and never publish database credentials.
+
+---
+
+## Testing Status
+
+The following functionality has been exercised during development:
+
+- CMake build and application startup.
+- MongoDB Atlas connection.
+- Road-data loading and graph display.
+- Evacuation-route calculation.
+- Road-condition update workflow.
+- Open-Meteo API requests and weather-value parsing.
+- Weather status calculation.
+
+Further validation should cover database write failures, invalid inputs, unreachable destinations, blocked-road behavior, API timeouts, and route correctness after road updates.
+
+---
+
+## Current Limitations
+
+- No graphical frontend or interactive map visualization.
+- Live traffic and authoritative road-closure feeds are not integrated.
+- Weather status is not yet automatically connected to road updates and route recalculation.
+- The configured weather thresholds require domain-specific validation.
+- More extensive integration and regression testing is needed.
+- The demonstration road network and available road records limit the realism of the current routing model.
+
+---
+
+## Future Scope
+
+- Connect weather results to road-risk updates and route recalculation.
+- Integrate live traffic, road closures, and disaster-related data.
+- Add designated evacuation centres, hospitals, and safe zones.
+- Develop a map-based frontend to display road networks and routes.
+- Improve route validation, error handling, and automated tests.
+- Scale the routing model to larger real-world road networks.
+- Evaluate route quality using realistic emergency scenarios.
+
+---
+
+## Project Status
+
+The project currently has a working C++ routing application with graph-based route optimization, a priority queue, MongoDB connectivity and road-data integration, road-condition update functionality, and a tested Open-Meteo weather API client.
+
+The next major step is to connect live weather information to road-risk updates and automatic route recalculation, followed by comprehensive testing and frontend/map development.
+
+The system provides a functional foundation for an adaptive emergency evacuation-routing application, with further work required before it can be considered a complete real-world emergency navigation solution.
