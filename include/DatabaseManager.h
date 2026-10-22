@@ -13,7 +13,7 @@
 
 class DatabaseManager {
 private:
-    // The MongoDB driver instance must outlive the client.
+
     static mongocxx::instance instance;
     mongocxx::client client;
     mongocxx::database database;
