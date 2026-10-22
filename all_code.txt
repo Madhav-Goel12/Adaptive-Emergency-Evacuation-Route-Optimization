@@ -1,18 +1,7 @@
 
-================================================================================
-FILE: .env.example
-================================================================================
 
+========== FILE: ./CMakeLists.txt ==========
 
-================================================================================
-FILE: .gitignore
-================================================================================
-.env
-
-
-================================================================================
-FILE: CMakeLists.txt
-================================================================================
 cmake_minimum_required(VERSION 3.15)
 project(AdaptiveEmergencyEvacuationRouteOptimization LANGUAGES CXX)
 
@@ -46,137 +35,8 @@ target_link_libraries(evacuation_app PRIVATE
 )
 
 
-================================================================================
-FILE: README.md
-================================================================================
-# Adaptive Emergency Evacuation Route Optimization
+========== FILE: ./algorithms/dijkstra.cpp ==========
 
-An intelligent emergency response navigation system built in C++ that dynamically calculates safe evacuation routes during disasters (floods, fires, and road blockages) using graph theory and shortest-path algorithms.
-
----
-
-##  Project Overview
-
-During severe emergencies, standard GPS routes can become hazardous or impassable due to sudden road damage, active hazard zones, or traffic jams. Traditional static routing systems fail to adapt to changing conditions.
-
-This project models a city road network as a **dynamic weighted graph**. It computes evacuation routes using **Dijkstra's Algorithm combined with a Priority Queue**. When road conditions change, edge weights are updated to help recalculate safer alternate paths.
-
----
-
-##  Project Progress & Compilation Status
-
-**Overall Backend Progress: Approximately 70â€“75%**
-
-The core backend modules and route optimization logic have been developed. The remaining work mainly involves database integration, testing, error handling, and frontend development.
-
-### Implementation Checklist
-
-- [x] **Location Module** â€” Represents locations in the road network.
-- [x] **Road Module** â€” Represents roads and their associated properties.
-- [x] **Graph Module** â€” Represents the road network using an adjacency list.
-- [x] **Dijkstra's Algorithm** â€” Calculates shortest paths using weighted edges.
-- [x] **Priority Queue** â€” Supports efficient selection of the next node during route calculation.
-- [x] **Route Optimization Logic** â€” Determines routes based on road weights.
-- [x] **Disaster Manager** â€” Handles changes in road conditions, including safe, risky, congested, and blocked roads.
-- [x] **Weather API Integration** â€” Weather-related integration has been developed; live API reliability and end-to-end behaviour require testing.
-- [ ] **MongoDB Integration** â€” Complete database connectivity and data persistence.
-- [ ] **End-to-End Testing** â€” Test route calculations, changing road conditions, and alternate routes.
-- [ ] **Error Handling** â€” Improve handling of invalid inputs, API failures, and unavailable routes.
-- [ ] **Frontend Development** â€” Build the user interface for entering locations and viewing routes.
-- [ ] **Map Visualization** â€” Display the road network and calculated evacuation routes visually.
-- [ ] **Final Integration and Demonstration** â€” Validate the complete system.
-
-**Compilation Note:** The core backend modules have been developed. A fresh build is required to confirm that the complete project compiles successfully together. Individual implementation completion does not necessarily mean every module has passed compilation and integration testing.
-
----
-
-##  System Architecture & Execution Pipeline
-
-### [1] USER INPUT
-- Receives the origin node (start location).
-- Receives the destination node (evacuation centre or safe zone).
-
-â†“
-
-### [2] ROAD NETWORK DATA
-- Represents locations as graph nodes using `Location` objects.
-- Represents connections as edges using `Road` objects.
-- Assigns weights based on road properties and conditions.
-
-â†“
-
-### [3] DIJKSTRA'S ALGORITHM + PRIORITY QUEUE
-- Evaluates paths using a priority queue.
-- Calculates the minimum-cost route based on the current edge weights.
-
-â†“
-
-### [4] INITIAL BEST ROUTE
-- Establishes the initial evacuation route.
-- Route output is handled by the backend; a graphical route display is planned for the frontend.
-
-â†“
-
-### [5] ROAD CONDITION UPDATE
-- Handles changes such as road blockages, flooding, or increased risk.
-- Updates the affected road's status or associated cost.
-
-â†“
-
-### [6] ALTERNATE ROUTE RECALCULATION
-- Recalculates the route using the updated graph weights.
-- Finds an alternate path when a suitable route is available.
-
----
-
-##  Key Features
-
-- **Dynamic Edge Weighting:** Adjusts route costs according to road conditions, risk levels, and blockage status.
-- **Safety Centre Routing:** Supports routing towards designated evacuation zones and medical centres.
-- **Alternate Route Calculation:** Recalculates routes when road conditions change.
-- **Weather Integration:** Incorporates weather-related information through API integration.
-- **Object-Oriented Design:** Uses modular C++ classes for maintainable code.
-- **Modular Backend:** Separates graph representation, road data, location data, disaster management, and route optimization.
-
----
-
-## ğŸ› ï¸ Data Structures & Algorithms Used
-
-- **Graph Representation:** Adjacency list for storing locations and road connections.
-- **Priority Queue / Min-Heap:** Helps select the next node with the lowest tentative cost.
-- **Dijkstra's Algorithm:** Computes minimum-cost paths for non-negative edge weights.
-- **Object-Oriented Programming:** Uses classes such as `Location`, `Road`, `Graph`, and `RouteOptimizer`.
-- **Dynamic Edge Weights:** Represents changing road conditions through adjusted route costs.
-
----
-
-##  Current Limitations
-
-- The frontend and interactive map view have not yet been implemented.
-- Live traffic and real-time road blockage data are not yet fully integrated.
-- MongoDB connectivity and persistence need to be completed and validated.
-- Full end-to-end testing and final integration are pending.
-
----
-
-##  Future Scope
-
-- Complete MongoDB integration for storing locations, roads, weather information, emergencies, and routes.
-- Develop an interactive frontend with map-based route visualization.
-- Integrate more reliable live weather, traffic, and road-condition data.
-- Improve error handling, route validation, and system testing.
-- Extend the system to support larger road networks and additional emergency scenarios.
-
----
-
-##  Project Status
-
-The project is currently focused on completing and validating the backend. The main graph structures and route optimization components have been developed, with approximately **70â€“75% of the backend work completed**. Database integration, comprehensive testing, frontend development, and map visualization remain part of the upcoming work.
-
-
-================================================================================
-FILE: algorithms/dijkstra.cpp
-================================================================================
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -247,9 +107,8 @@ int main() {
 }
 
 
-================================================================================
-FILE: algorithms/pathreconstruction.cpp
-================================================================================
+========== FILE: ./algorithms/pathreconstruction.cpp ==========
+
 #include "PathReconstruction.h"
 #include <algorithm>
 #include <vector>
@@ -279,9 +138,8 @@ vector<int> getPath(vector<int> &par, int src, int des) {
 }
 
 
-================================================================================
-FILE: algorithms/priorityqueue.cpp
-================================================================================
+========== FILE: ./algorithms/priorityqueue.cpp ==========
+
 #include "priorityqueue.h"
 #include <algorithm>
 #include <stdexcept>
@@ -335,9 +193,8 @@ bool PriorityQueue::empty()
 }
 
 
-================================================================================
-FILE: include/Data_loader.h
-================================================================================
+========== FILE: ./include/Data_loader.h ==========
+
 #ifndef DATA_LOADER_H
 #define DATA_LOADER_H
 
@@ -350,9 +207,8 @@ Graph loadGraphFromJSON(const std::string& filename);
 
 
 
-================================================================================
-FILE: include/DatabaseManager.h
-================================================================================
+========== FILE: ./include/DatabaseManager.h ==========
+
 #ifndef DATABASE_MANAGER_H
 #define DATABASE_MANAGER_H
 
@@ -412,9 +268,8 @@ public:
 #endif
 
 
-================================================================================
-FILE: include/Dijkstra.h
-================================================================================
+========== FILE: ./include/Dijkstra.h ==========
+
 #ifndef DIJKSTRA_H
 #define DIJKSTRA_H
 #include "Graph.h"
@@ -424,9 +279,8 @@ using namespace std;
 vector<int> dijkstra(Graph &g,int src,int des,int &total);
 #endif
 
-================================================================================
-FILE: include/DisasterManager.h
-================================================================================
+========== FILE: ./include/DisasterManager.h ==========
+
 #ifndef DISASTER_MANAGER_H
 #define DISASTER_MANAGER_H
 
@@ -446,9 +300,8 @@ public:
 #endif
 
 
-================================================================================
-FILE: include/Graph.h
-================================================================================
+========== FILE: ./include/Graph.h ==========
+
 #ifndef GRAPH_H
 #define GRAPH_H
 
@@ -471,9 +324,8 @@ bool getRoadDetails(int u, int v, double& time,
 };
 #endif
 
-================================================================================
-FILE: include/Location.h
-================================================================================
+========== FILE: ./include/Location.h ==========
+
 #ifndef LOCATION_H
 #define LOCATION_H
 
@@ -500,9 +352,8 @@ public:
 
 #endif
 
-================================================================================
-FILE: include/PathReconstruction.h
-================================================================================
+========== FILE: ./include/PathReconstruction.h ==========
+
 #ifndef PATH_RECONSTRUCTION_H
 #define PATH_RECONSTRUCTION_H
 #include <vector>
@@ -511,9 +362,8 @@ vector<int> getPath(vector<int> &par,int src,int des);
 #endif
 
 
-================================================================================
-FILE: include/Road.h
-================================================================================
+========== FILE: ./include/Road.h ==========
+
 #ifndef ROAD_H
 #define ROAD_H
 #include <iostream>
@@ -541,9 +391,8 @@ public:
 #endif
 
 
-================================================================================
-FILE: include/RouteOptimizer.h
-================================================================================
+========== FILE: ./include/RouteOptimizer.h ==========
+
 #ifndef ROUTE_OPTIMIZER_H
 #define ROUTE_OPTIMIZER_H
 
@@ -559,9 +408,8 @@ public:
 
 #endif
 
-================================================================================
-FILE: include/apiclient.h
-================================================================================
+========== FILE: ./include/apiclient.h ==========
+
 #ifndef APICLIENT_H
 #define APICLIENT_H
 
@@ -587,9 +435,8 @@ public:
 #endif
 
 
-================================================================================
-FILE: include/priorityqueue.h
-================================================================================
+========== FILE: ./include/priorityqueue.h ==========
+
 #ifndef PRIORITY_QUEUE_H
 #define PRIORITY_QUEUE_H
 #include <vector>
@@ -610,9 +457,910 @@ bool empty();
 };
 #endif
 
-================================================================================
-FILE: src/DataLoader.cpp
-================================================================================
+========== FILE: ./repo_contents.txt ==========
+
+=== File: ./main ===
+ELF          >     #      @        ¸          @ 8  @          @       @       @       Ø      Ø                                                                                        à      à                                           e0      e0                    `       `       `      ¨      ¨                   À|      ÀŒ      ÀŒ      X      ˜                   Ğ|      ĞŒ      ĞŒ                               8      8      8      0       0                    h      h      h      D       D              Såtd   8      8      8      0       0              Påtd   øa      øa      øa      „      „             Qåtd                                                  Råtd   À|      ÀŒ      ÀŒ      @      @             /lib64/ld-linux-x86-64.so.2               GNU   À          € À                   GNU Ï})5HĞë’·°çÄ÷ZØ†         GNU                      #          ‘    #       $   ÑeÎm4’=„˜C                        R                     ã                     ô                     ò                     ”                      •                     S                                          i                     û                     .                     "                     ²                      8                     Ñ                     	                     œ                     Ò                     †                                          F                      ã                     Ô                     ¸                     ü                                          ®                                            Ô                                                                 ¤                     ,                       ó                        "                   -  "  8                @             __gmon_start__ _ITM_deregisterTMCloneTable _ITM_registerTMCloneTable _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_S_copy_charsEPcPKcS7_ _ZSt20__throw_length_errorPKc _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEPc _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE11_M_capacityEm _ZStlsIcSt11char_traitsIcESaIcEERSt13basic_ostreamIT_T0_ES7_RKNSt7__cxx1112basic_stringIS4_S5_T1_EE _ZdlPvm _ZNSolsEd _ZNSolsEi _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1Ev _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tag _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EOS4_ _ZNSolsEPFRSoS_E _ZSt17__throw_bad_allocv _ZSt21ios_base_library_initv __gxx_personality_v0 _ZSt28__throw_bad_array_new_lengthv _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEaSERKS4_ _ZNKSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEv _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc _Znwm _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_createERmm _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_M_set_lengthEm _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv _ZSt4cout _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_M_local_dataEv _ZSt19__throw_logic_errorPKc _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderC1EPcRKS3_ _Unwind_Resume __stack_chk_fail strlen __libc_start_main __cxa_finalize libstdc++.so.6 libgcc_s.so.1 libc.so.6 GCC_3.0 GLIBC_2.4 GLIBC_2.34 GLIBC_2.2.5 CXXABI_1.3 GLIBCXX_3.4.32 CXXABI_1.3.9 GLIBCXX_3.4.29 GLIBCXX_3.4 GLIBCXX_3.4.21                            	 
+                    +         P&y   C        9     @   ii   K     ´‘–   U     ui	   `                 Ó¯k  
+ l     Bø—  	 w     yÑ¯   †     yø—   “     t)’   ¢     qø—   ®      ÀŒ             €$      ÈŒ             @$                         Ğ         #           Ø                    à         
+           è                    ğ                    ø         !                               @         %           ø                                                                                                                          (                    0         	           8                    @                    H                    P                    X                    `                    h                    p                    x                    €                    ˆ                                        ˜                                         ¨                    °                    ¸                    À                     È         "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           óúHƒìH‹áo  H…ÀtÿĞHƒÄÃ     ÿ5Ân  ÿ%Än  @ óúh    éâÿÿÿfóúh   éÒÿÿÿfóúh   éÂÿÿÿfóúh   é²ÿÿÿfóúh   é¢ÿÿÿfóúh   é’ÿÿÿfóúh   é‚ÿÿÿfóúh   érÿÿÿfóúh   ébÿÿÿfóúh	   éRÿÿÿfóúh
+   éBÿÿÿfóúh   é2ÿÿÿfóúh   é"ÿÿÿfóúh   éÿÿÿfóúh   éÿÿÿfóúh   éòşÿÿfóúh   éâşÿÿfóúh   éÒşÿÿfóúh   éÂşÿÿfóúh   é²şÿÿfóúh   é¢şÿÿfóúh   é’şÿÿfóúh   é‚şÿÿfóúh   érşÿÿfóúh   ébşÿÿfóúh   éRşÿÿfóúh   éBşÿÿfóúÿ%æm  fD  óúÿ%şl  fD  óúÿ%öl  fD  óúÿ%îl  fD  óúÿ%æl  fD  óúÿ%Şl  fD  óúÿ%Öl  fD  óúÿ%Îl  fD  óúÿ%Æl  fD  óúÿ%¾l  fD  óúÿ%¶l  fD  óúÿ%®l  fD  óúÿ%¦l  fD  óúÿ%l  fD  óúÿ%–l  fD  óúÿ%l  fD  óúÿ%†l  fD  óúÿ%~l  fD  óúÿ%vl  fD  óúÿ%nl  fD  óúÿ%fl  fD  óúÿ%^l  fD  óúÿ%Vl  fD  óúÿ%Nl  fD  óúÿ%Fl  fD  óúÿ%>l  fD  óúÿ%6l  fD  óúÿ%.l  fD  óú1íI‰Ñ^H‰âHƒäğPTE1À1ÉH=Ê   ÿl  ôf.„     H=Al  H:l  H9øtH‹şk  H…Àt	ÿà€    Ã€    H=l  H5
+l  H)şH‰ğHÁî?HÁøHÆHÑştH‹Ík  H…ÀtÿàfD  Ã€    óú€=m   u+UHƒ=zk   H‰åtH‹=¦k  èyıÿÿèdÿÿÿÆİl  ]Ã Ã€    óúéwÿÿÿóúUH‰åSHƒìHdH‹%(   H‰Eè1ÀHE°H‰ÇèU  HE°H‰Çè»  HE°H‰Çèy  H8<  H‰ÆHfk  H‰ÇèÎıÿÿH‹ïj  H‰ÖH‰ÇèìıÿÿH5<  H‰ÆH;k  H‰Çè£ıÿÿH‹Äj  H‰ÖH‰ÇèÁıÿÿHE°HƒÀ¾   H‰Çèd  ¾   H‰Çèm  HE°HƒÀ¾   H‰ÇèB  H‰Çèª  »    HE°H‰ÇèÇ  ‰ØH‹UèdH+%(   t9ë2óúH‰ÃHE°H‰Çè¡  H‰ØH‹UèdH+%(   tètıÿÿH‰Çè¬ıÿÿègıÿÿH‹]øÉÃóúUH‰å¸    ]ÃóúUH‰åH‰}øH‰uğH‹Eğ]ÃóúUH‰åHƒìH‰}øèÆÿÿÿ„ÀtH‹EøH‰Çè]  ëH‹EøH‰ÇèùûÿÿÉÃóúUH‰åSHƒì(H‰}è‰uäH‰UØ‰ÈˆEàH‹EèHƒÀH‰ÇèùüÿÿH‹Eè‹Uä‰H‹EèHPH‹EØH‰ÆH‰×è‰ûÿÿH‹Eè¶UàˆP(ë"óúH‰ÃH‹EèHƒÀH‰ÇèµûÿÿH‰ØH‰ÇèÊüÿÿH‹]øÉÃóúUH‰åHƒìH‰}øHU9  H‰ÆHƒi  H‰ÇèëûÿÿH‰ÂH‹Eø‹ ‰ÆH‰×èxüÿÿH‰ÂH+9  H‰ÆH‰×èÃûÿÿH‰ÂH‹EøHƒÀH‰ÆH‰×èûÿÿH‰ÂH
+9  H‰ÆH‰×è˜ûÿÿH‰ÂH‹Eø¶@(„Àt	Hø8  ëHó8  H‰ÆH‰×ènûÿÿH‹h  H‰ÖH‰ÇèŒûÿÿÉÃóúUH‰åH‰}ø‰uô‰UğòEèòMàH‹Eø‹Uô‰H‹Eø‹Uğ‰PH‹EøòEèò@H‹EøÆ@ H‹EøòEàò@]ÃóúUH‰åH‰}ø‰ğˆEôH‹Eø¶UôˆP]ÃóúUH‰åH‰}øH‹Eø¶@„Àt
+òÂ9  ëH‹EøòHH‹Eøò@òYÁ]ÃóúUH‰åSHƒìH‰}èH8  H‰ÆHh  H‰Çè~úÿÿH‰ÂH‹Eè‹ ‰ÆH‰×èûÿÿH‰ÂHå7  H‰ÆH‰×èVúÿÿH‰ÂH‹Eè‹@‰ÆH‰×èâúÿÿH‰ÂHÁ7  H‰ÆH‰×è-úÿÿH‰ÂH®7  H‰ÆH‰×èúÿÿH‰ÂH‹EèH‹@fHnÀH‰×èĞúÿÿH‰ÂH‹7  H‰ÆH‰×èëùÿÿH‰ÂH|7  H‰ÆH‰×èÖùÿÿH‰ÂH‹Eè¶@„Àt	Hh7  ëHd7  H‰ÆH‰×è¬ùÿÿH‰ÂHU7  H‰ÆH‰×è—ùÿÿH‰ÃH‹EèH‰Çè¦şÿÿfH~ÀfHnÀH‰ßèFúÿÿH‹—f  H‰ÖH‰Çè”ùÿÿH‹]øÉÃóúUH‰åHƒìH‰}øH‹EøHƒÀH‰ÇèÌøÿÿÉÃóúUH‰åSHìÈ   H‰½8ÿÿÿdH‹%(   H‰Eè1ÀH‹8ÿÿÿH…pÿÿÿH‰…@ÿÿÿH•pÿÿÿHEH°6  H‰ÎH‰Çè*
+  HUHE°¹    ¾    H‰Çè.üÿÿHE°H‰ÆH‰ßè©
+  HE°H‰ÇèMÿÿÿHEH‰Çè-øÿÿH…pÿÿÿH‰Çè†  H‹8ÿÿÿH…pÿÿÿH‰…HÿÿÿH•pÿÿÿHEH76  H‰ÎH‰Çè¥	  HUHE°¹    ¾   H‰Çè©ûÿÿHE°H‰ÆH‰ßè$
+  HE°H‰ÇèÈşÿÿHEH‰Çè¨÷ÿÿH…pÿÿÿH‰Çè  H‹8ÿÿÿH…pÿÿÿH‰…PÿÿÿH•pÿÿÿHEHÀ5  H‰ÎH‰Çè 	  HUHE°¹    ¾   H‰Çè$ûÿÿHE°H‰ÆH‰ßèŸ	  HE°H‰ÇèCşÿÿHEH‰Çè#÷ÿÿH…pÿÿÿH‰Çè|  H‹8ÿÿÿH…pÿÿÿH‰…XÿÿÿH•pÿÿÿHEHG5  H‰ÎH‰Çè›  HUHE°¹    ¾   H‰ÇèŸúÿÿHE°H‰ÆH‰ßè	  HE°H‰Çè¾ıÿÿHEH‰ÇèöÿÿH…pÿÿÿH‰Çè÷  H‹8ÿÿÿH…pÿÿÿH‰…`ÿÿÿH•pÿÿÿHEHÓ4  H‰ÎH‰Çè  HUHE°¹   ¾   H‰ÇèúÿÿHE°H‰ÆH‰ßè•  HE°H‰Çè9ıÿÿHEH‰ÇèöÿÿH…pÿÿÿH‰Çèr  H‹8ÿÿÿH…pÿÿÿH‰…hÿÿÿH•pÿÿÿHEHa4  H‰ÎH‰Çè‘  HUHE°¹   ¾   H‰Çè•ùÿÿHE°H‰ÆH‰ßè  HE°H‰Çè´üÿÿHEH‰Çè”õÿÿH…pÿÿÿH‰Çèí
+  H‹…8ÿÿÿHXòé4  H‹ê4  H…pÿÿÿf(ÈfHnÂº   ¾    H‰Çè`úÿÿH…pÿÿÿH‰ÆH‰ßèĞ  H‹…8ÿÿÿHXò›4  H‹¤4  H…pÿÿÿf(ÈfHnÂº   ¾    H‰ÇèúÿÿH…pÿÿÿH‰ÆH‰ßè‚  H‹…8ÿÿÿHXòM4  H‹^4  H…pÿÿÿf(ÈfHnÂº   ¾   H‰ÇèÄùÿÿH…pÿÿÿH‰ÆH‰ßè4  H‹…8ÿÿÿHXòÿ3  H‹4  H…pÿÿÿf(ÈfHnÂº   ¾   H‰ÇèvùÿÿH…pÿÿÿH‰ÆH‰ßèæ  H‹…8ÿÿÿHXò±3  H‹Ò3  H…pÿÿÿf(ÈfHnÂº   ¾   H‰Çè(ùÿÿH…pÿÿÿH‰ÆH‰ßè˜  H‹…8ÿÿÿHXòc3  H‹Œ3  H…pÿÿÿf(ÈfHnÂº   ¾   H‰ÇèÚøÿÿH…pÿÿÿH‰ÆH‰ßèJ  H‹…8ÿÿÿHXò3  H‹F3  H…pÿÿÿf(ÈfHnÂº   ¾   H‰ÇèŒøÿÿH…pÿÿÿH‰ÆH‰ßèü  H‹EèdH+%(   „J  é@  óúH‰ÃHE°H‰ÇèJúÿÿëóúH‰ÃHEH‰Çè!óÿÿëóúH‰ÃH…pÿÿÿH‰Çèq  H‰ØH‹UèdH+%(   tèÑóÿÿH‰Çè	ôÿÿóúH‰ÃHE°H‰ÇèêùÿÿëóúH‰ÃHEH‰ÇèÁòÿÿëóúH‰ÃH…pÿÿÿH‰Çè  H‰ØH‹UèdH+%(   tèqóÿÿH‰Çè©óÿÿóúH‰ÃHE°H‰ÇèŠùÿÿëóúH‰ÃHEH‰ÇèaòÿÿëóúH‰ÃH…pÿÿÿH‰Çè±  H‰ØH‹UèdH+%(   tèóÿÿH‰ÇèIóÿÿóúH‰ÃHE°H‰Çè*ùÿÿëóúH‰ÃHEH‰ÇèòÿÿëóúH‰ÃH…pÿÿÿH‰ÇèQ  H‰ØH‹UèdH+%(   tè±òÿÿH‰ÇèéòÿÿóúH‰ÃHE°H‰ÇèÊøÿÿëóúH‰ÃHEH‰Çè¡ñÿÿëóúH‰ÃH…pÿÿÿH‰Çèñ  H‰ØH‹UèdH+%(   tèQòÿÿH‰Çè‰òÿÿóúH‰ÃHE°H‰ÇèjøÿÿëóúH‰ÃHEH‰ÇèAñÿÿëóúH‰ÃH…pÿÿÿH‰Çè‘  H‰ØH‹UèdH+%(   tèññÿÿH‰Çè)òÿÿèäñÿÿH‹]øÉÃóúUH‰åHƒì H‰}èH~/  H‰ÆHİ^  H‰ÇèEñÿÿH‹f^  H‰ÖH‰ÇècñÿÿHÇEğ    ë H‹EèH‹UğH‰ÖH‰Çè¨  H‰ÇèúôÿÿHƒEğH‹EèH‰Çè]  H9Eğ’À„ÀuÉH*/  H‰ÆHq^  H‰ÇèÙğÿÿH‹ú]  H‰ÖH‰Çè÷ğÿÿHÇEø    ë$H‹EèHPH‹EøH‰ÆH‰×è  H‰ÇèöõÿÿHƒEøH‹EèHƒÀH‰ÇèI  H9Eø’À„ÀuÁÉÃóúUH‰åHƒì H‰}èH‹EèH‰EøH‹EøH‰Çè 	  ÉÃóúUH‰åHƒìH‰}øH‹EøH‰ÇèB  ÉÃóúUH‰åHƒìH‰}øH‹EøH‰ÇèÄÿÿÿÉÃóúUH‰åHƒì H‰}èH‹EèH‰EøH‹EøH‰Çè^	  ÉÃóúUH‰åHƒìH‰}øH‹EøH‰ÇèÂ  ÉÃóúUH‰åHƒìH‰}øH‹EøH‰ÇèÄÿÿÿÉÃóúUH‰åHƒìH‰}øH‹EøH‰Çè\ÿÿÿH‹EøHƒÀH‰Çè´ÿÿÿÉÃóúUH‰åHƒìH‰}øH‹EøHƒÀH‰ÇèÒ  H‹EøH‰Çèè  ÉÃóúUH‰åHƒì0H‰}ØdH‹%(   H‰Eø1ÀHÇEğ    ëHƒEğÆEï H‹UØH‹EğHÂHEïH‰ÆH‰×èĞ  ƒğ„ÀuÖH‹EğH‹UødH+%(   tèOïÿÿÉÃóúUH‰åHƒì H‰}èH‹EèH‰EøH‹EøH‰Çè°  ÉÃóúUH‰åSHƒì8H‰}ØH‰uĞH‰UÈH‹]ØH‹EØH‰Çè[îÿÿH‰ÁH‹EÈH‰ÂH‰ÎH‰ßè¶îÿÿHƒ}Ğ uH-  H‰ÇèîÿÿH‹EĞH‰ÇèˆñÿÿH‹UĞHĞH‰EèH‹UèH‹MĞH‹EØH‰ÎH‰Çè†  ëóúH‰ÃH‹EØH‰ÇèAÿÿÿH‰ØH‰ÇèÂîÿÿH‹]øÉÃóúUH‰åHƒìH‰}øH‰uğH‹EğH‰ÇèY  H‰ÂH‹EøH‰ÖH‰ÇèZ  ÉÃóúUH‰åHƒìH‰}øH‰uğH‹EğH‰Çè-  H‰ÂH‹EøH‰ÖH‰Çè.  ÉÃóúUH‰åH‰}øH‹EøH‹PH‹EøH‹ H)ÂHÁúH¸«ªªªªªªªH¯Â]ÃóúUH‰åH‰}øH‰uğH‹EøH‹H‹UğH‰ĞHÀHĞHÁàHÈ]ÃóúUH‰åH‰}øH‹EøH‹PH‹EøH‹ H)ÂH‰ĞHÁø]ÃóúUH‰åH‰}øH‰uğH‹EøH‹ H‹UğHÁâHĞ]ÃóúUH‰åHƒì H‰}èH‹EèH‰EğH‹EğH‰EøH‹EèH‰Çè^  ÉÃóúUH‰åHƒìH‰}øH‹EøH‹PH‹EøH‹ H)ÂHÁúH¸«ªªªªªªªH¯ÂH‰ÂH‹EøH‹H‹EøH‰ÎH‰ÇèO  H‹EøH‰ÇèïûÿÿÉÃóúUH‰åHƒì0H‰}ØH‹EØH‰Çèv  H‹UØH‹RH‹MØH‹	H‰MèH‰UğH‰EøH‹UğH‹EèH‰ÖH‰ÇèP  H‹EØH‰ÇèMÿÿÿÉÃóúUH‰åHƒì H‰}èH‹EèH‰EğH‹EğH‰EøH‹EèH‰Çè  ÉÃóúUH‰åHƒìH‰}øH‹EøH‹PH‹EøH‹ H)ÂH‰ĞHÁøH‰ÂH‹EøH‹H‹EøH‰ÎH‰Çè  H‹EøH‰ÇèzûÿÿÉÃóúUH‰åHƒì0H‰}ØH‹EØH‰Çè>  H‹UØH‹RH‹MØH‹	H‰MèH‰UğH‰EøH‹UğH‹EèH‰ÖH‰Çèœ  H‹EØH‰ÇèWÿÿÿÉÃóúUH‰åH‰}øH‰uğH‹Eø¶H‹Eğ¶ 8Â”À]ÃóúUH‰åH‰}ø]ÃóúUH‰åH‰}øH‰uğH‹EøH‹UğH‰]ÃóúUH‰åHƒìH‰}øH‹EøH‹ H…ÀtH‹EøH‹ H‰Çè/ëÿÿÉÃóúUH‰åHƒì`H‰}¸H‰u°H‰U¨dH‹%(   H‰Eø1ÀH‹E°H‰EĞH‹E¨H‰EØH‹EĞH‰EàH‹EØH‰EèH‹EèH+EàH‰EÈH‹EÈHƒøv?HMÈH‹E¸º    H‰ÎH‰ÇèõêÿÿH‰ÂH‹E¸H‰ÖH‰ÇèêÿÿH‹UÈH‹E¸H‰ÖH‰Çèğêÿÿë	H‹E¸H‰EğH‹U¸HEĞH‰ÖH‰ÇèúşÿÿH‹E¸H‰Çè6êÿÿH‰ÁH‹U¨H‹E°H‰ÆH‰Ïè0êÿÿHÇEĞ    H‹UÈH‹E¸H‰ÖH‰ÇèUéÿÿHEĞH‰ÇèÏşÿÿH‹EødH+%(   tèêÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åSHƒìHH‰}¸H‰u°H‹E¸H‹PH‹E¸H‹@H9Â„‡   H‹E°H‰Çè*  H‹U¸H‹RH‹M¸H‰MÀH‰UÈH‰EĞH‹EĞH‰Çè  H‹UÀH‰UØH‹UÈH‰UàH‰EèH‹EàH‰Æ¿0   èìÿÿH‰ÃH‹EèH‰ÇèÒ  H‰ÆH‰ßèk	  H‹E¸H‹@HP0H‹E¸H‰Pë0H‹E°H‰Çè£  H‰ÃH‹E¸H‰Çè¦  H‰ÁH‹E¸H‰ÚH‰ÎH‰Çèá  H‹E¸H‰Çè=  H‹]øÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åSHƒìHH‰}¸H‰u°H‹E¸H‹PH‹E¸H‹@H9Â„   H‹E°H‰ÇèP  H‹U¸H‹RH‹M¸H‰MÀH‰UÈH‰EĞH‹EĞH‰Çè,  H‹UÀH‰UØH‹UÈH‰UàH‰EèH‹EàH‰Æ¿    èëÿÿH‰ÃH‹EèH‰Çèø  H‰ÁH‹H‹QH‰H‰SH‹AH‹QH‰CH‰SH‹E¸H‹@HP H‹E¸H‰Pë0H‹E°H‰Çè³  H‰ÃH‹E¸H‰Çè¶  H‰ÁH‹E¸H‰ÚH‰ÎH‰Çèñ  H‹E¸H‰Çè=  H‹]øÉÃóúUH‰åH‰}øH‹EøHÇ     H‹EøHÇ@    H‹EøHÇ@    ]ÃóúUH‰åH‰}ø]ÃóúUH‰åHƒì@H‰}ØH‰uĞH‰UÈHƒ}Ğ t0H‹EØH‰EèH‹EĞH‰EğH‹EÈH‰EøH‹UøH‹MğH‹EèH‰ÎH‰Çè^  ÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åH‰}øH‹EøHÇ     H‹EøHÇ@    H‹EøHÇ@    ]ÃóúUH‰åH‰}ø]ÃóúUH‰åHƒì@H‰}ØH‰uĞH‰UÈHƒ}Ğ t0H‹EØH‰EèH‹EĞH‰EğH‹EÈH‰EøH‹UøH‹MğH‹EèH‰ÎH‰Çè2  ÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì H‰}èdH‹%(   H‰Eø1ÀH‹EèHPHEğH‰ÖH‰Çèª  H‹EğH‹UødH+%(   tè,æÿÿÉÃóúUH‰åSHì˜   H‰½xÿÿÿH‰µpÿÿÿH‰•hÿÿÿdH‹%(   H‰Eè1ÀH‹…xÿÿÿHZ$  ¾   H‰Çèc  H‰EˆH‹…xÿÿÿH‹ H‰EH‹…xÿÿÿH‹@H‰E˜H‹…xÿÿÿH‰Çè7  H‰E€HU€H…pÿÿÿH‰ÖH‰Çèi  H‰E H‹…xÿÿÿH‹UˆH‰ÖH‰Çè¡  H‰E¨H‹E¨H‰E°H‹…hÿÿÿH‰ÇèĞşÿÿH‰ÁH‹U H‰ĞHÀHĞHÁàH‰ÂH‹E¨HÂH‹…xÿÿÿH‰E¸H‰UÀH‰MÈH‹EÈH‰Çè“şÿÿH‹U¸H‰UĞH‹UÀH‰UØH‰EàH‹EØH‰Æ¿0   è¨çÿÿH‰ÃH‹EàH‰Çè_şÿÿH‰ÆH‰ßèø  HÇE°    H‹…xÿÿÿH‰ÇèƒıÿÿH‰ÃH…pÿÿÿH‰Çèc  H‹0H‹U¨H‹EH‰ÙH‰Çè  H‰E°HƒE°0H‹…xÿÿÿH‰ÇèCıÿÿH‰ÃH…pÿÿÿH‰Çè#  H‹ H‹U°H‹u˜H‰ÙH‰ÇèÖ  H‰E°H‹…xÿÿÿH‹•xÿÿÿH‹RH+UH‰ÑHÁùHº«ªªªªªªªH¯ÑH‹MH‰ÎH‰Çè‹üÿÿH‹…xÿÿÿH‹U¨H‰H‹…xÿÿÿH‹U°H‰PH‹UˆH‰ĞHÀHĞHÁàH‰ÂH‹E¨HÂH‹…xÿÿÿH‰PH‹EèdH+%(   tèÉãÿÿH‹]øÉÃóúUH‰åHƒì0H‰}ØdH‹%(   H‰Eø1ÀH‹EØH‰ÇèıÿÿH‰EèHEè¾   H‰ÇèB  H‰EğHEğH‰Çè¤  H‹UødH+%(   tè^ãÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì H‰}èdH‹%(   H‰Eø1ÀH‹EèHPHEğH‰ÖH‰Çè\  H‹EğH‹UødH+%(   tèüâÿÿÉÃóúUH‰åSHì˜   H‰½xÿÿÿH‰µpÿÿÿH‰•hÿÿÿdH‹%(   H‰Eè1ÀH‹…xÿÿÿH*!  ¾   H‰Çè  H‰EˆH‹…xÿÿÿH‹ H‰EH‹…xÿÿÿH‹@H‰E˜H‹…xÿÿÿH‰Çèé  H‰E€HU€H…pÿÿÿH‰ÖH‰Çè  H‰E H‹…xÿÿÿH‹UˆH‰ÖH‰ÇèG  H‰E¨H‹E¨H‰E°H‹…hÿÿÿH‰ÇèĞşÿÿH‹U H‰ÑHÁáH‹U¨HÑH‹•xÿÿÿH‰U¸H‰MÀH‰EÈH‹EÈH‰ÇèŸşÿÿH‹U¸H‰UĞH‹UÀH‰UØH‰EàH‹EØH‰Æ¿    è„äÿÿH‰ÃH‹EàH‰ÇèkşÿÿH‰ÁH‹H‹QH‰H‰SH‹AH‹QH‰CH‰SHÇE°    H‹…xÿÿÿH‰ÇèïúÿÿH‰ÃH…pÿÿÿH‰Çèÿ  H‹0H‹U¨H‹EH‰ÙH‰Çè²  H‰E°HƒE° H‹…xÿÿÿH‰Çè¯úÿÿH‰ÃH…pÿÿÿH‰Çè¿  H‹ H‹U°H‹u˜H‰ÙH‰Çèr  H‰E°H‹…xÿÿÿH‹•xÿÿÿH‹RH+UHÁúH‹MH‰ÎH‰ÇèúÿÿH‹…xÿÿÿH‹U¨H‰H‹…xÿÿÿH‹U°H‰PH‹EˆHÁàH‰ÂH‹E¨HÂH‹…xÿÿÿH‰PH‹EèdH+%(   tè©àÿÿH‹]øÉÃóúUH‰åHƒì0H‰}ØdH‹%(   H‰Eø1ÀH‹EØH‰Çè-ıÿÿH‰EèHEè¾   H‰Çèø  H‰EğHEğH‰ÇèR  H‹UødH+%(   tè>àÿÿÉÃóúUH‰åHƒìH‰}øH‰uğH‹UğH‹EøH‰ÖH‰Çèh  ÉÃóúUH‰åHƒìH‰}øH‰uğH‹UğH‹EøH‰ÖH‰Çè¯  ÉÃóúUH‰åHƒìH‰}øH‰uğH‹Eğ‹H‹Eø‰H‹EøHƒÀH‹UğHƒÂH‰ÖH‰Çè½ŞÿÿH‹Eğ¶P(H‹EøˆP(ÉÃóúUH‰åH‰}øH‰uğH‹EğH‹H‹EøH‰]ÃóúUH‰åSHƒìHH‰}ÈH‰uÀH‰U¸dH‹%(   H‰Eè1ÀH‹EÈH‰Çè  H‰ÃH‹EÈH‰Çè%ñÿÿH)ÃH‰ÚH‹EÀH9Â’À„Àt H‹EèdH+%(   tèßÿÿH‹E¸H‰ÇèŞÿÿH‹EÈH‰ÇèåğÿÿH‰ÃH‹EÈH‰ÇèÖğÿÿH‰EØHUÀHEØH‰ÖH‰ÇèÍ  H‹ HØH‰EàH‹EÈH‰Çè©ğÿÿH9EàrH‹EÈH‰Çè  H;EàsH‹EÈH‰Çèm  ëH‹EàH‹UèdH+%(   tè{ŞÿÿH‹]øÉÃóúUH‰åHƒì H‰}èdH‹%(   H‰Eø1ÀH‹UèHEğH‰ÖH‰Çè¨şÿÿH‹EğH‹UødH+%(   tè*ŞÿÿÉÃóúUH‰åSHƒìH‰}èH‰uàH‹EèH‰Çèµ   H‹H‹EàH‰Çè¦   H‹ H)ÃH‰ÚHÁúH¸«ªªªªªªªH¯ÂH‹]øÉÃóúUH‰åHƒì H‰}èH‰uàHƒ}à t+H‹EèH‰EğH‹EàH‰EøH‹MøH‹Eğº    H‰ÎH‰Çèy  ë¸    ÉÃóúUH‰åHƒì H‰}øH‰uğH‰UèH‰MàH‹MàH‹UèH‹uğH‹EøH‰Çè‚  ÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì0H‰}ØH‰uĞdH‹%(   H‰Eø1ÀH‹EØH‹H‹UĞH‰ĞHÀHĞHÁàH÷ØHÈH‰EèHUèHEğH‰ÖH‰ÇèNıÿÿH‹EğH‹UødH+%(   tèĞÜÿÿÉÃóúUH‰åH‰}øH‹EøH‹ ]ÃóúUH‰åH‰}øH‰uğH‹EğH‹H‹EøH‰]ÃóúUH‰åSHƒìHH‰}ÈH‰uÀH‰U¸dH‹%(   H‰Eè1ÀH‹EÈH‰Çèö  H‰ÃH‹EÈH‰Çè£îÿÿH)ÃH‰ÚH‹EÀH9Â’À„Àt H‹EèdH+%(   tè+ÜÿÿH‹E¸H‰ÇèÛÿÿH‹EÈH‰ÇècîÿÿH‰ÃH‹EÈH‰ÇèTîÿÿH‰EØHUÀHEØH‰ÖH‰Çèë  H‹ HØH‰EàH‹EÈH‰Çè'îÿÿH9EàrH‹EÈH‰ÇèY  H;EàsH‹EÈH‰ÇèG  ëH‹EàH‹UèdH+%(   tè™ÛÿÿH‹]øÉÃóúUH‰åHƒì H‰}èdH‹%(   H‰Eø1ÀH‹UèHEğH‰ÖH‰Çè¨şÿÿH‹EğH‹UødH+%(   tèHÛÿÿÉÃóúUH‰åSHƒìH‰}èH‰uàH‹EèH‰Çè©   H‹H‹EàH‰Çèš   H‹ H‰ÚH)ÂH‰ĞHÁøH‹]øÉÃóúUH‰åHƒì H‰}èH‰uàHƒ}à t+H‹EèH‰EğH‹EàH‰EøH‹MøH‹Eğº    H‰ÎH‰Çè1  ë¸    ÉÃóúUH‰åHƒì H‰}øH‰uğH‰UèH‰MàH‹MàH‹UèH‹uğH‹EøH‰Çè9  ÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì0H‰}ØH‰uĞdH‹%(   H‰Eø1ÀH‹EØH‹ H‹UĞHÁâH÷ÚHĞH‰EèHUèHEğH‰ÖH‰ÇècıÿÿH‹EğH‹UødH+%(   tèÚÿÿÉÃóúUH‰åH‰}øH‹EøH‹ ]ÃóúUH‰åHƒì H‰}øH‰uğH‰UèH‹UèH‰ĞHÀHĞHÁàH‰ÂH‹EğH‰ÖH‰Çè_ÙÿÿÉÃóúUH‰åHƒìH‰}øH‰uğëH‹EøH‰Çè¬  H‰Çè¶  HƒEø0H‹EøH;EğuİÉÃóúUH‰åHƒì H‰}øH‰uğH‰UèH‹EèHÁàH‰ÂH‹EğH‰ÖH‰ÇèîØÿÿÉÃóúUH‰åH‰}øH‰uğ]ÃóúUH‰åHƒìH‰}øH‹EøH‰Çèà  H‰ÇèV  ÉÃóúUH‰åH‰}øH‰uğH‹EøH‹H‹EğH‹ H9ÂsH‹EğëH‹Eø]ÃóúUH‰åATSHƒì H‰}èH‰uàH‰UØH‰MĞH‹EØH‰Çè  I‰ÄH‹EàH‰Çèó  H‰ÃH‹EèH‰Çèä  H‰ÇH‹EĞH‰ÁL‰âH‰Şèá  HƒÄ [A\]ÃóúUH‰åHƒìH‰}øH‹EøH‰Çè²  H‰Çè)  ÉÃóúUH‰åATSHƒì H‰}èH‰uàH‰UØH‰MĞH‹EØH‰Çèú  I‰ÄH‹EàH‰Çèë  H‰ÃH‹EèH‰ÇèÜ  H‰ÇH‹EĞH‰ÁL‰âH‰ŞèÙ  HƒÄ [A\]ÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒìH‰}øH‹EøH‰ÇèåİÿÿÉÃóúUH‰åHƒì@H‰}ÈdH‹%(   H‰Eø1ÀH¸ªªªªªªªH‰EĞH‹EÈH‰EàH‹EàH‰EèH‹EèH‰EğH¸ªªªªªªªH‰EØHUØHEĞH‰ÖH‰Çè¬  H‹ H‹UødH+%(   tè/×ÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì0H‰}èH‰uàH‰UØH‹EèH‰EøH¸ªªªªªªªH;Eà’À¶ÀH…À•À„ÀtH¸UUUUUUUH;EàsèÖÿÿè¢ÕÿÿH‹UàH‰ĞHÀHĞHÁàH‰ÇèIÖÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åSHƒì8H‰}ØH‰uĞH‰UÈH‰MÀH‹EÈH‰Eèë:H‹EØH‰Çè‚şÿÿH‰ÃH‹EèH‰ÇèsşÿÿH‰ÁH‹EÀH‰ÂH‰ŞH‰ÏèÒ  HƒEØ0HƒEè0H‹EØH;EĞu¼H‹EèH‹]øÉÃóúUH‰åHƒì@H‰}ÈdH‹%(   H‰Eø1ÀH¸ÿÿÿÿÿÿÿH‰EĞH‹EÈH‰EàH‹EàH‰EèH‹EèH‰EğH¸ÿÿÿÿÿÿÿH‰EØHUØHEĞH‰ÖH‰Çè  H‹ H‹UødH+%(   tè ÕÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åHƒì0H‰}èH‰uàH‰UØH‹EèH‰EøH¸ÿÿÿÿÿÿÿH;Eà’À¶ÀH…À•À„ÀtH¸ÿÿÿÿÿÿÿH;Eàsè‰ÔÿÿèÔÿÿH‹EàHÁàH‰ÇèÄÔÿÿÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åSHƒì8H‰}ØH‰uĞH‰UÈH‰MÀH‹EÈH‰Eèë:H‹EØH‰Çè4  H‰ÃH‹EèH‰Çè%  H‰ÁH‹EÀH‰ÂH‰ŞH‰Ïè"  HƒEØ HƒEè H‹EØH;EĞu¼H‹EèH‹]øÉÃóúUH‰åH‰}øH‰uğH‹EğH‹H‹EøH‹ H9ÂsH‹EğëH‹Eø]ÃóúUH‰åSHƒìxH‰}˜H‰uH‰UˆH‹EH‰ÇèCêÿÿH‹UˆH‰UÀH‹U˜H‰UÈH‰EĞH‹EĞH‰ÇèšíÿÿH‹UÀH‰UØH‹UÈH‰UàH‰EèH‹EàH‰Æ¿0   è¯ÖÿÿH‰ÃH‹EèH‰ÇèfíÿÿH‰ÆH‰ßèÿóÿÿH‹EH‰ÇèúûÿÿH‹UˆH‰U H‰E¨H‹E H‰E°H‹E¨H‰E¸H‹E¸H‰ÇèåÙÿÿH‹]øÉÃóúUH‰åH‰}øH‹Eø]ÃóúUH‰åSHƒìxH‰}˜H‰uH‰UˆH‹EH‰ÇèxêÿÿH‹UˆH‰UÀH‹U˜H‰UÈH‰EĞH‹EĞH‰ÇèõïÿÿH‹UÀH‰UØH‹UÈH‰UàH‰EèH‹EàH‰Æ¿    èÚÕÿÿH‰ÃH‹EèH‰ÇèÁïÿÿH‰ÁH‹H‹QH‰H‰SH‹AH‹QH‰CH‰SH‹EH‰ÇèFÿÿÿH‹UˆH‰U H‰E¨H‹E H‰E°H‹E¨H‰E¸H‹]øÉÃ óúHƒìHƒÄÃ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ID:   | Name:   | Safe Zone:  YES NO Edge (  ->  )  | Time:   mins  | Blocked:  True False  | Dynamic Weight:  Clock Tower ISBT Junction Rajpur Road Ballupur Flyover Military Shelter A City General Hospital 
+=== LOCATIONS LIST === 
+=== ROADS LIST ===      
+--- Updating Road Condition ---        Simulating road block at Edge (3 -> 4)...       basic_string: construction from null is not valid vector::_M_realloc_insert      ~„.A      ğ?      )@       @      .@      @      6@      $@      2@;„  o   (¾ÿÿ¸  è¿ÿÿà  ø¿ÿÿø  ¨Áÿÿ   ‘ÂÿÿÄ  ÇÃÿÿ  ÖÃÿÿ0  ìÃÿÿP  "Äÿÿ  ¤Äÿÿ¸  `ÅÿÿØ  ¶Åÿÿø  ÖÅÿÿ  Æÿÿ8  \Çÿÿ\  €Çÿÿ|  JÏÿÿ¤  >ĞÿÿÄ  fĞÿÿä  †Ğÿÿ  ¦Ğÿÿ$  ÎĞÿÿD  îĞÿÿd  Ñÿÿ„  >Ñÿÿ¤  nÑÿÿì  ÜÑÿÿ  Òÿÿ,  ¬ÒÿÿT  âÒÿÿt  Óÿÿ”  JÓÿÿ´  xÓÿÿÔ   Óÿÿô  ÄÓÿÿ  öÓÿÿ4  RÔÿÿX  ¬Ôÿÿ|  ŞÔÿÿœ  0ÕÿÿÀ  ŠÕÿÿä  °Õÿÿ	  ÀÕÿÿ$	  ŞÕÿÿD	  Öÿÿh	  %×ÿÿˆ	  8×ÿÿ¨	  /ØÿÿÌ	  BØÿÿì	  PÙÿÿ
+  ‚Ùÿÿ0
+  ’ÙÿÿP
+  äÙÿÿp
+  öÙÿÿ
+  (Úÿÿ°
+  8ÚÿÿĞ
+  ŠÚÿÿğ
+  œÚÿÿ  ®Úÿÿ0  şÚÿÿP  fİÿÿt  Ìİÿÿ”  Şİÿÿ´  .ŞÿÿÔ  †àÿÿø  ìàÿÿ  áÿÿ8  @áÿÿX  áÿÿx  °áÿÿ˜  ´âÿÿ¼   ãÿÿÜ  Rãÿÿ   Ÿãÿÿ   Öãÿÿ@  èãÿÿ`  Zäÿÿ€  päÿÿ   ’äÿÿÀ  –åÿÿä  âåÿÿ  (æÿÿ$  uæÿÿD  ¬æÿÿd  ¾æÿÿ„  (çÿÿ¤  >çÿÿÄ  {çÿÿä  ¸çÿÿ  ìçÿÿ$   èÿÿD  &èÿÿd  Uèÿÿ„  ¼èÿÿ¨  âèÿÿÈ  Iéÿÿì  [éÿÿ  zéÿÿ,  üéÿÿL  êÿÿl  ‚êÿÿŒ  ”êÿÿ¬  	ëÿÿĞ  Šëÿÿğ  œëÿÿ  ìÿÿ0  ìÿÿP  ìÿÿt  ½ìÿÿ”  €íÿÿ¸  ’íÿÿØ             zR x         ¾ÿÿ&    D    $   4   hºÿÿÀ   FJw€ ?9*3$"       \    ¼ÿÿ              t   ø»ÿÿ°             Œ   ¯¿ÿÿ    E†CF      ¬   ¿ÿÿ    E†CM      Ì   ”¿ÿÿ6    E†Cm          zPLR x›•)    $   $   Š¿ÿÿ‚   _  E†CEƒt      4  ä¿ÿÿ»    E†C²     T  €ÀÿÿV    E†CM     t  ¶Àÿÿ    E†CV      ”  ¶Àÿÿ:    E†Cq       ´  ĞÀÿÿK   E†CEƒ=     Ø  øÁÿÿ#    E†CZ   $     üÁÿÿÊ    E†CHƒ¹        Éÿÿô    E†Cë     @  rÊÿÿ(    E†C_      `  zÊÿÿ    E†CV      €  zÊÿÿ    E†CV         zÊÿÿ(    E†C_      À  ‚Êÿÿ    E†CV      à  ‚Êÿÿ    E†CV         ‚Êÿÿ/    E†Cf         ’Êÿÿ/    E†Cf   $   X  Å»ÿÿ6  ª  E†CEƒ(     h  zÊÿÿm    E†Cd     ˆ  ÈÊÿÿ(    E†C_   $   À  ĞÊÿÿ¨   Q  E†CEƒš      Ğ  PËÿÿ5    E†Cl      ğ  fËÿÿ5    E†Cl        |Ëÿÿ2    E†Ci      0  Ëÿÿ-    E†Cd      P  œËÿÿ'    E†C^      p  ¤Ëÿÿ$    E†C[        ¨Ëÿÿ1    E†Ch       È  ºËÿÿ\   W
+  E†CS      ì  òËÿÿZ   7
+  E†CQ     ø  (Ìÿÿ1    E†Ch       0  :ÌÿÿQ   ÷	  E†CH      T  hÌÿÿZ   ×	  E†CQ     `  Ìÿÿ%    E†C\      €  ¤Ìÿÿ    E†CF         ”Ìÿÿ    E†CU       Ø  ’Ìÿÿ.   W	  E†Ce      ä  œÌÿÿ   E†C      •Íÿÿ    E†CI       $  ˆÍÿÿ÷    E†CEƒé      H  [Îÿÿ    E†CI       h  NÎÿÿ   E†CEƒÿ      Œ  8Ïÿÿ2    E†Ci      ¬  JÏÿÿ    E†CF      Ì  :ÏÿÿR    E†CI     ì  lÏÿÿ    E†CI        ^Ïÿÿ2    E†Ci      ,  pÏÿÿ    E†CF      L  `ÏÿÿR    E†CI     l  ’Ïÿÿ    E†CI      Œ  „Ïÿÿ    E†CI      ¬  vÏÿÿP    E†CG      Ì  ¦Ïÿÿg   E†CHƒV     ğ  êÑÿÿf    E†C]       0Òÿÿ    E†CI      0  "ÒÿÿP    E†CG      P  RÒÿÿW   E†CHƒF     t  †Ôÿÿf    E†C]     ”  ÌÔÿÿ*    E†Ca      ´  ÖÔÿÿ*    E†Ca      Ô  àÔÿÿM    E†CD     ô  Õÿÿ!    E†CX       	  Õÿÿ   E†CEƒõ      8	  ğÕÿÿL    E†CC      X	  ÖÿÿQ    E†CEƒC      |	  JÖÿÿM    E†CD     œ	  wÖÿÿ6    E†Cm      ¼	  Öÿÿ    E†CI      Ü	  €Öÿÿr    E†Ci     ü	  ÒÖÿÿ    E†CL      
+  ÈÖÿÿ!    E†CX       <
+  ÊÖÿÿ   E†CEƒõ      `
+  ª×ÿÿL    E†CC     €
+  Ö×ÿÿF    E†CEƒx    
+  ü×ÿÿM    E†CD     À
+  )Øÿÿ6    E†Cm      à
+  @Øÿÿ    E†CI         2Øÿÿi    E†C`        |Øÿÿ    E†CL      @  rØÿÿ=    E†Ct      `  Øÿÿ=    E†Ct      €  ¬Øÿÿ4    E†Ck         ÀØÿÿ    E†CJ      À  ´Øÿÿ&    E†C]      à  ºØÿÿ/    E†Cf          ÉØÿÿg    E†CGŒƒW    $  Ùÿÿ&    E†C]       D  Ùÿÿg    E†CGŒƒW    h  UÙÿÿ    E†CI      ˆ  GÙÿÿ    E†CV      ¨  FÙÿÿ    E†Cx     È  ¨Ùÿÿ    E†CI      è  šÙÿÿt    E†Ck       îÙÿÿ    E†CI       (  àÙÿÿu    E†CEƒg      L  1Úÿÿ    E†Cx     l  ’Úÿÿ    E†CI      Œ  „Úÿÿk    E†Cb     ¬  ÏÚÿÿ    E†CI       Ì  ÁÚÿÿu    E†CEƒg      ğ  Ûÿÿ/    E†Cf         !ÛÿÿÃ    E†CEƒµ      4  ÀÛÿÿ    E†CI       T  ²ÛÿÿÍ    E†CEƒ¿       ÿÿHZ w  ÿÿoU© o” ~ÿ
+ Ú‰ ôô ƒß ßé ùÔ ˆ¿ äÉ ş´ Ÿ é© ƒ” ’ÿ î‰ ˆô —ß ²  ÿÿ/¦ù ¦  ÿÿ
+O3„   ÿÿ ÿÿ ÿÿ ÿÿ ÿÿ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         €$      @$                          +             9                            XP             ÀŒ                           ÈŒ                    õşÿo    °             p             à      
+       ½                                          à             ˆ                           X             P                   	                            ûÿÿo          şÿÿo    €      ÿÿÿo           ğÿÿo    .      ùÿÿo                                                                                           ĞŒ                      0       @       P       `       p       €                      °       À       Ğ       à       ğ        !      !       !      0!      @!      P!      `!      p!      €!      !       !      °!      À!      Ğ!                                                                            GCC: (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0                                ñÿ                	     Œ                  ñÿ                     Ğ#                     $              3     @$              I     P‘             U     ÈŒ              |     €$              ˆ     ÀŒ              §    ñÿ                ¸     ¬a             ë     ­a                 ®a                 ñÿ                Q    ôs                   ñÿ                _     øa              r    ĞŒ              {    à              ‘  "  ŒL      u       Ë                       "  ÚG      F       }  "  ö<      g      å  "  RF             ,  "  °I      4       \  "  ¨7             z  "  C      *       –  "  ¤4      5       Ä  "  G      L       ç  "  î;      2          "  63      /       6  "  sI      =       m                  t  "  ¤6      1       ¨  "  62      (       à  "  ˜5      $       ÿ  "  ®'               "   <             8  "  H;      2       u  "  ”<             Ë                    ±     `             À  "  &@      W      $  "  xO             D                     i  "  MJ      g       ¡  "  5      2       È  "  0<      R       ÿ  "  8            g  "  J6      Z       Š  "  z;             °  "                   Ë                     Ş  "  ^2                 ‰$      6                           T  "  ´J      &       {  "  àE      r       Â                     ì  "  ':             "	                 /	  "  2      (       c	  "  &      ‚       ©	  "  B1      ô       Í	  "  JE      M       
+                     N
+  "  Ö7      .       Ä
+                       "  SK             *  "  ¸7             £  "  —E      6       Ş  !              ú  "  Ú4      5       $                     z  "  Ü;             ·                     à   XP              æ  "  ‚7      %                            +  "  †N      /       A  "  ¸7             º  "  Ö6      Q       à  "  (      K      õ                     (                     ~  "  î5      \       ¨  "  63      /       ¾  "  äI             ñ  "  ^?      f                            g  "  ¿%             †  "  †C      !       Ğ                     C  "  p5      '       f  "  hF      !       ¬  "  Ô3      (       ô  "  6I      =       (  "  &      ‚       n  "  8C      M         "  09      ÷       ¿  "  ¦<      P       ä  "  øI      &       Ï     #      &         "  (7      Z       .                     r                     „                     ™  "  Î'      :       ¬  "  z;             Ò                     ï                     L  "  Ô3      (       ”  "  (7      Z       ³  "  ‚M             í  "  mH      6       $  "  f3      m       M  "  ŠF            |                     Ì  "  ^2             ö  "  ::            0                                          ¨                   ®                 º  "  X'      V       Ê  "  3      /       à  "  T)      #       ñ  "  œ&      »       
+  "  ÚJ      g       >  "  8C      M       Q  "  B5      -       t                     Ç  "  ¼5      1       ÿ    @              "  ü3      ¨       [  "  î;      2       ”  "  ‚<             Í  "  J      /       ã  "  æ2               "  ~B      f       $  "  x)      Ê      J  "  ¬D      L       q  "  AK             •  "  2      (       É                   Ö  "  äB      *       ö    X‘              û                     D  "  Æ2             j  "  î5      \       ”  "  ¨7             ²  "  æ2             Ñ  "  ¤6      1         "  ~2             (  "  zL             L    @              X  "  ÿM             x  "  9             ²                     Ş  "  L      t         "  hF      !       T  "  H;      2       ‘  "  ¼5      1       É  "  Î%             Ñ  "  N      u         "  ”M      k       3  "  62      (       k  "   H      M       œ  "  Ä?             Ô                     ô  "  rK             &  "  Æ2             L  "  ¶H      i         "  ŠO      Í       Æ  "  ü3      ¨         "  M             :                     P  "   I             “                      ¯                     Æ  "  ¤H               "  Š;      R       G  "  µN      Ã       ‚                     Õ  "  T)      #       æ  "  ÎE             0   "  ôK             n   "  ~2             ‘   "  ä%      6       ²                       Á                      ×                       ñ   "  Ö6      Q       !  "   <             9!  "  †C      !       ƒ!  "  J6      Z       ¦!  "  X'      V       ¶!  "  øD      Q       "  "  Ö7      .       •"                     é"  "  ¨C            #  "  Ö?      P       =#  "  3      /        Scrt1.o __abi_tag crtstuff.c deregister_tm_clones __do_global_dtors_aux completed.0 __do_global_dtors_aux_fini_array_entry frame_dummy __frame_dummy_init_array_entry locationroad.cpp _ZNSt8__detail30__integer_to_chars_is_unsignedIjEE _ZNSt8__detail30__integer_to_chars_is_unsignedImEE _ZNSt8__detail30__integer_to_chars_is_unsignedIyEE __FRAME_END__ __GNU_EH_FRAME_HDR _DYNAMIC _GLOBAL_OFFSET_TABLE_ _ZSt14__relocate_a_1IP8LocationS1_SaIS0_EET0_T_S4_S3_RT1_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEaSERKS4_@GLIBCXX_3.4.21 _ZN9__gnu_cxxmiIP4RoadSt6vectorIS1_SaIS1_EEEENS_17__normal_iteratorIT_T0_E15difference_typeERKS9_SC_ _ZNSt6vectorI8LocationSaIS0_EE17_M_realloc_insertIJS0_EEEvN9__gnu_cxx17__normal_iteratorIPS0_S2_EEDpOT_ _ZNK9__gnu_cxx17__normal_iteratorIP8LocationSt6vectorIS1_SaIS1_EEEdeEv _ZNSt15__new_allocatorI4RoadE10deallocateEPS0_m _ZNSt15__new_allocatorIcED1Ev _ZSt8_DestroyIP4RoadEvT_S2_ _ZNSt6vectorI8LocationSaIS0_EE9push_backEOS0_ _ZNSt6vectorI4RoadSaIS0_EE5beginEv _ZNSt12_Vector_baseI4RoadSaIS0_EE17_Vector_impl_dataC1Ev _ZN12NetworkSetupD1Ev _ZNSt12_Destroy_auxILb0EE9__destroyIP8LocationEEvT_S4_ _edata _ZNSt12_Vector_baseI4RoadSaIS0_EE12_Vector_implC2Ev _ZNSt12_Vector_baseI8LocationSaIS0_EE12_Vector_implD1Ev _ZNSt6vectorI4RoadSaIS0_EEixEm _ZN4Road10setBlockedEb _ZNSt15__new_allocatorI4RoadED1Ev _ZNSt12_Vector_baseI8LocationSaIS0_EE17_Vector_impl_dataC2Ev _ZSt7forwardI8LocationEOT_RNSt16remove_referenceIS1_E4typeE _IO_stdin_used _ZNSt6vectorI4RoadSaIS0_EE17_M_realloc_insertIJS0_EEEvN9__gnu_cxx17__normal_iteratorIPS0_S2_EEDpOT_ _ZSt11__addressofI4RoadEPT_RS1_ _ZSt17__throw_bad_allocv@GLIBCXX_3.4 _ZSt12__relocate_aIP8LocationS1_SaIS0_EET0_T_S4_S3_RT1_ _ZNKSt6vectorI8LocationSaIS0_EE4sizeEv _ZNSt12_Vector_baseI4RoadSaIS0_EE13_M_deallocateEPS0_m _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tag _ZNSt6vectorI8LocationSaIS0_EED2Ev _ZNSt15__new_allocatorI8LocationED1Ev __cxa_finalize@GLIBC_2.2.5 strlen@GLIBC_2.2.5 _ZNSt12_Vector_baseI8LocationSaIS0_EEC2Ev main _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_@GLIBCXX_3.4 _ZNKSt6vectorI4RoadSaIS0_EE8max_sizeEv _ZNK9__gnu_cxx17__normal_iteratorIP8LocationSt6vectorIS1_SaIS1_EEEmiEl _ZSt20__throw_length_errorPKc@GLIBCXX_3.4 _ZSt4moveIR4RoadEONSt16remove_referenceIT_E4typeEOS3_ __dso_handle _ZNSt12_Vector_baseI4RoadSaIS0_EE12_Vector_implD2Ev _ZN8LocationC1EiNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb _ZN12NetworkSetup14displayNetworkEv _ZNSt12_Vector_baseI8LocationSaIS0_EE11_M_allocateEm _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EOS4_@GLIBCXX_3.4.21 _ZZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tagEN6_GuardD2Ev _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev@GLIBCXX_3.4.21 _ZSt8_DestroyI8LocationEvPT_ _ZZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tagEN6_GuardC1EPS4_ _ZNSt6vectorI8LocationSaIS0_EE11_S_relocateEPS0_S3_S3_RS1_ DW.ref.__gxx_personality_v0 _ZNSt6vectorI4RoadSaIS0_EE9push_backEOS0_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_M_set_lengthEm@GLIBCXX_3.4.21 _ZNSt12_Vector_baseI8LocationSaIS0_EE19_M_get_Tp_allocatorEv _ZSt19__throw_logic_errorPKc@GLIBCXX_3.4 _fini _ZN9__gnu_cxx11char_traitsIcE2eqERKcS3_ __libc_start_main@GLIBC_2.34 _ZSt3minImERKT_S2_S2_ _ZZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tagEN6_GuardC2EPS4_ _ZNSt12_Vector_baseI4RoadSaIS0_EED2Ev _ZN4Road9printRoadEv _ZSt28__throw_bad_array_new_lengthv@GLIBCXX_3.4.29 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_M_local_dataEv@GLIBCXX_3.4.21 _ZNSt12_Vector_baseI8LocationSaIS0_EED2Ev _ZN12NetworkSetupD2Ev _ZNSt12_Destroy_auxILb1EE9__destroyIP4RoadEEvT_S4_ _ZNSt6vectorI8LocationSaIS0_EE4backEv _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEPc@GLIBCXX_3.4.21 _ZSt23__is_constant_evaluatedv _ZN9__gnu_cxx17__normal_iteratorIP8LocationSt6vectorIS1_SaIS1_EEEC2ERKS2_ _ZStlsIcSt11char_traitsIcESaIcEERSt13basic_ostreamIT_T0_ES7_RKNSt7__cxx1112basic_stringIS4_S5_T1_EE@GLIBCXX_3.4.21 _ZNKSt6vectorI4RoadSaIS0_EE4sizeEv _ZN9__gnu_cxx17__normal_iteratorIP4RoadSt6vectorIS1_SaIS1_EEEC2ERKS2_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderD1Ev _ZNSt15__new_allocatorI8LocationE10deallocateEPS0_m _ZN8LocationC2EiNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb _ZN8LocationC1EOS_ _ZNSt6vectorI8LocationSaIS0_EE12emplace_backIJS0_EEERS0_DpOT_ _ZNSt6vectorI8LocationSaIS0_EE3endEv _ZNKSt6vectorI8LocationSaIS0_EE8max_sizeEv _ZNSt6vectorI4RoadSaIS0_EED2Ev _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@GLIBCXX_3.4 _Znwm@GLIBCXX_3.4 _ZdlPvm@CXXABI_1.3.9 _ZN4Road7getCostEv _ZNSt15__new_allocatorI8LocationED2Ev _ZNSolsEPFRSoS_E@GLIBCXX_3.4 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderC1EPcRKS3_@GLIBCXX_3.4.21 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderD2Ev _ZNSt6vectorI4RoadSaIS0_EED1Ev _ZNKSt12_Vector_baseI4RoadSaIS0_EE19_M_get_Tp_allocatorEv _ZNSt6vectorI4RoadSaIS0_EE11_S_relocateEPS0_S3_S3_RS1_ _ZN9__gnu_cxx11char_traitsIcE6lengthEPKc _ZNKSt6vectorI4RoadSaIS0_EE12_M_check_lenEmPKc _ZNKSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEv@GLIBCXX_3.4.21 _ZNSt12_Vector_baseI8LocationSaIS0_EEC1Ev _ZNSt6vectorI4RoadSaIS0_EE12emplace_backIJS0_EEERS0_DpOT_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_S_copy_charsEPcPKcS7_@GLIBCXX_3.4.21 __stack_chk_fail@GLIBC_2.4 _init __TMC_END__ _ZN4RoadC2Eiidd _ZN12NetworkSetupC2Ev _ZN8LocationD2Ev _ZN8Location9printInfoEv _ZSt12__relocate_aIP4RoadS1_SaIS0_EET0_T_S4_S3_RT1_ _ZN8LocationC2EOS_ _ZNSt6vectorI8LocationSaIS0_EEixEm _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv@GLIBCXX_3.4.21 _ZNSt12_Vector_baseI8LocationSaIS0_EE12_Vector_implC2Ev _ZSt4cout@GLIBCXX_3.4 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1IS3_EEPKcRKS3_ _ZNSt12_Vector_baseI4RoadSaIS0_EE17_Vector_impl_dataC2Ev _ZNSt12_Vector_baseI4RoadSaIS0_EE19_M_get_Tp_allocatorEv _ZSt3maxImERKT_S2_S2_ _ZNSt6vectorI4RoadSaIS0_EEC1Ev _ZNSt6vectorI4RoadSaIS0_EE4backEv _ZN12NetworkSetup16buildSampleGraphEv _ZNSt6vectorI8LocationSaIS0_EE5beginEv _ZSt11__addressofI8LocationEPT_RS1_ _ZNSt12_Vector_baseI4RoadSaIS0_EE12_Vector_implD1Ev __data_start _ZSt8_DestroyIP8LocationEvT_S2_ _end _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1Ev@GLIBCXX_3.4.21 _ZNSt12_Vector_baseI4RoadSaIS0_EEC2Ev _ZNSt12_Vector_baseI8LocationSaIS0_EED1Ev _ZNSt15__new_allocatorIcED2Ev _ZNSt6vectorI4RoadSaIS0_EEC2Ev _ZNSt12_Vector_baseI4RoadSaIS0_EE12_Vector_implC1Ev _ZNSt6vectorI8LocationSaIS0_EEC1Ev _ZSt12__niter_baseIP8LocationET_S2_ __bss_start _ZSt12__niter_baseIP4RoadET_S2_ _ZSt4moveIR8LocationEONSt16remove_referenceIT_E4typeEOS3_ _ZSt21ios_base_library_initv@GLIBCXX_3.4.32 _ZNSt15__new_allocatorI8LocationE8allocateEmPKv _ZN9__gnu_cxx17__normal_iteratorIP4RoadSt6vectorIS1_SaIS1_EEEC1ERKS2_ _ZNSt12_Vector_baseI8LocationSaIS0_EE17_Vector_impl_dataC1Ev _ZNSt12_Vector_baseI8LocationSaIS0_EE12_Vector_implC1Ev _ZnwmPv _ZSt14__relocate_a_1IP4RoadS1_SaIS0_EET0_T_S4_S3_RT1_ _ZNSt15__new_allocatorI4RoadE8allocateEmPKv _ZNSt12_Vector_baseI8LocationSaIS0_EE12_Vector_implD2Ev _ZNSt12_Vector_baseI4RoadSaIS0_EE11_M_allocateEm _ZSt7forwardI4RoadEOT_RNSt16remove_referenceIS1_E4typeE __gxx_personality_v0@CXXABI_1.3 _ZNSt6vectorI8LocationSaIS0_EE11_S_max_sizeERKS1_ _ZNSt12_Vector_baseI4RoadSaIS0_EEC1Ev _ZNK9__gnu_cxx17__normal_iteratorIP4RoadSt6vectorIS1_SaIS1_EEEmiEl _ZSt19__relocate_object_aI4RoadS0_SaIS0_EEvPT_PT0_RT1_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2IS3_EEPKcRKS3_ _ZNSt6vectorI4RoadSaIS0_EE11_S_max_sizeERKS1_ _ZNSolsEi@GLIBCXX_3.4 _ZNK9__gnu_cxx17__normal_iteratorIP4RoadSt6vectorIS1_SaIS1_EEEdeEv _ITM_deregisterTMCloneTable _Unwind_Resume@GCC_3.0 _ZNK9__gnu_cxx17__normal_iteratorIP4RoadSt6vectorIS1_SaIS1_EEE4baseEv _ZNSt12_Vector_baseI8LocationSaIS0_EE13_M_deallocateEPS0_m _ZSt19__relocate_object_aI8LocationS0_SaIS0_EEvPT_PT0_RT1_ _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_createERmm@GLIBCXX_3.4.21 _ZN8LocationD1Ev _ZNK9__gnu_cxx17__normal_iteratorIP8LocationSt6vectorIS1_SaIS1_EEE4baseEv _ZNKSt12_Vector_baseI8LocationSaIS0_EE19_M_get_Tp_allocatorEv _ZNSt6vectorI8LocationSaIS0_EEC2Ev _ZNSt11char_traitsIcE6lengthEPKc __gmon_start__ _ZNSolsEd@GLIBCXX_3.4 _ITM_registerTMCloneTable _ZNSt12_Vector_baseI4RoadSaIS0_EED1Ev _ZNSt15__new_allocatorI4RoadED2Ev _ZN9__gnu_cxx17__normal_iteratorIP8LocationSt6vectorIS1_SaIS1_EEEC1ERKS2_ _ZNSt6vectorI8LocationSaIS0_EED1Ev _ZN4RoadC1Eiidd _ZN9__gnu_cxxmiIP8LocationSt6vectorIS1_SaIS1_EEEENS_17__normal_iteratorIT_T0_E15difference_typeERKS9_SC_ _ZZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tagEN6_GuardD1Ev _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE11_M_capacityEm@GLIBCXX_3.4.21 _ZNKSt6vectorI8LocationSaIS0_EE12_M_check_lenEmPKc _ZNSt6vectorI4RoadSaIS0_EE3endEv _ZN12NetworkSetupC1Ev  .symtab .strtab .shstrtab .interp .note.gnu.property .note.gnu.build-id .note.ABI-tag .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt .init .plt.got .plt.sec .text .fini .rodata .eh_frame_hdr .eh_frame .gcc_except_table .init_array .fini_array .dynamic .data .bss .comment                                                                                                                         #             8      8      0                              6             h      h      $                              I             Œ      Œ                                     W   öÿÿo       °      °      0                             a             à      à                                i             p      p      ½                             q   ÿÿÿo       .      .      L                            ~   şÿÿo       €      €      Ğ                                         P      P                                 —      B       X      X      ˆ                          ¡                                                           œ                             À                            §             à!      à!                                   °             ğ!      ğ!      °                            ¹              #       #      ·,                             ¿             XP      XP                                    Å              `       `      ø                             Í             øa      øa      „                             Û             €e      €e      x                             å             øs      øs      °                              ÷             ÀŒ      À|                                               ÈŒ      È|                                               ĞŒ      Ğ|                                 «             à      à~                                                       €                                                @      €                    @               #     0               €      -                                                   H€      8                          	                      €“      S#                                                   Ó¶      ,                             
+=== File: ./README.md ===
+# Adaptive Emergency Evacuation Route Optimization
+
+An intelligent emergency response navigation system built in C++ that dynamically calculates safe evacuation routes during disasters (floods, fires, road blockages) using graph theory and shortest-path algorithms.
+
+---
+
+## ğŸ“Œ Project Overview
+
+During severe emergencies, standard GPS routes can become hazardous or impassable due to sudden road damage, active hazard zones, or traffic jams. Traditional static routing algorithm systems fail to adapt in real time. 
+
+This project models a city road network as a **dynamic weighted graph**. It computes optimal routes to safety centers using **Dijkstra's Algorithm combined with a Priority Queue**. When road conditions change, the edge weights update dynamically to recalculate safe alternate paths, bypassing affected zones.
+
+ SYSTEM ARCHITECTURE EXECUTION PIPELINE
+
+### [1] USER INPUT
+
+- Receives Origin Node  (Start Location)
+- Receives Destination Node (Evacuation Center / Safe Zone)
+
+â†“
+
+### [2] ROAD NETWORK DATA
+
+- Map converted to Graph Nodes (Location objects)
+- Edges assigned dynamic weights (Road objects with travel time)
+
+â†“
+
+### [3] DIJKSTRA'S ALGORITHM + PRIORITY QUEUE
+
+- Evaluates shortest path using Min-Heap
+- Calculates optimal evacuation route based on current weights
+
+â†“
+
+### [4] INITIAL BEST ROUTE
+
+- Primary evacuation route established and displayed to user
+
+â†“
+
+### [5] ROAD CONDITION UPDATE (DYNAMIC TRIGGER)
+
+- Incident detected (e.g., road blockage, flooding, heavy risk)
+- Affected Road status changed to Blocked / Hazard level scaled
+
+â†“
+
+### [6] ALTERNATE ROUTE RE-CALCULATION
+
+- Dynamic route optimization triggered
+- New safe path generated bypassing affected edges
+
+---
+
+## âš™ï¸ Key Features
+
+* **Dynamic Edge Weighting:** Calculates dynamic cost based on base travel time, risk/hazard multipliers, and total road closure flags[cite: 1].
+* **Safety Center Routing:** Prioritizes routing affected citizens toward designated evacuation zones and medical centers[cite: 1].
+* **Real-time Re-routing:** Reroutes traffic away from blocked or risky edges dynamically without rebuilding the entire graph[cite: 1].
+* **Object-Oriented Design:** Built using clean, modular OOP architecture in C++[cite: 1].
+
+---
+
+## ğŸ› ï¸ Data Structures & Algorithms Used
+
+* **Graph Representation:** Adjacency List for space-efficient storage of nodes and edges[cite: 1].
+* **Priority Queue / Min-Heap:** Fast node extraction with $O(\log V)$ efficiency during shortest path lookup[cite: 1].
+* **Dijkstraâ€™s Algorithm:** Evaluates total path costs dynamically to compute safe evacuation routes[cite: 1].
+* **Object-Oriented Programming (OOP):** Core entities structured via encapsulation (`Location`, `Road`, `Graph`, `RouteOptimizer`)[cite: 1].
+
+---
+
+=== File: ./algorithms/priorityqueue.cpp ===
+#include "priorityqueue.h"
+void PriorityQueue::push(int node,int cost)
+{
+PQNode x;
+x.node=node;
+x.cost=cost;
+
+q.push_back(x);
+
+int i=q.size()-1;
+
+while(i>0)
+{
+int p=(i-1)/2;
+
+if(q[p].cost<=q[i].cost)
+break;
+
+swap(q[p],q[i]);
+i=p;
+}
+}
+
+PQNode PriorityQueue::pop()
+{
+PQNode x=q[0];
+
+q[0]=q.back();
+q.pop_back();
+
+int i=0;
+
+while(true)
+{
+int l=2*i+1;
+int r=2*i+2;
+int s=i;
+if(l<q.size()&&q[l].cost<q[s].cost)
+s=l;
+if(r<q.size()&&q[r].cost<q[s].cost)
+s=r;
+if(s==i)
+break;
+swap(q[i],q[s]);
+i=s;
+}
+return x;
+}
+bool PriorityQueue::empty()
+{
+return q.empty();
+}
+=== File: ./algorithms/pathreconstruction.cpp ===
+#include "PathReconstruction.h"
+#include <algorithm>
+vector<int> getPath(vector<int> &par,int src,int des)
+{
+vector<int> path;
+int cur=des;
+while(cur!=-1)
+{
+path.push_back(cur);
+if(cur==src)
+break;
+cur=par[cur];
+}
+if(path.back()!=src)
+{
+path.clear();
+return path;
+}
+reverse(path.begin(),path.end());
+return path;
+}
+=== File: ./algorithms/dijkstra.cpp ===
+
+=== File: ./include/PathReconstruction.h ===
+#ifndef PATH_RECONSTRUCTION_H
+#define PATH_RECONSTRUCTION_H
+#include <vector>
+using namespace std;
+vector<int> getPath(vector<int> &par,int src,int des);
+#endif
+=== File: ./include/Location.h ===
+#ifndef LOCATION_H
+#define LOCATION_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Location {
+private:
+    int locationId;
+    string locationName;
+    bool isSafeZone;
+
+public:
+    Location();
+    Location(int id, string name, bool safe = false);
+
+    int getId();
+    string getName();
+    bool checkSafeZone();
+    void setSafeZone(bool status);
+    void printInfo();
+};
+
+#endif
+=== File: ./include/Graph.h ===
+#ifndef GRAPH_H
+#define GRAPH_H
+
+#include <iostream>
+#include <vector>
+#include "Road.h"
+using namespace std;
+class Graph 
+{
+private:
+    vector<vector<Road>> adjList;
+public:
+    Graph(int totalLocations);
+    void addRoad(Road road);
+    void showGraph();
+};
+#endif
+=== File: ./include/Dijkstra.h ===
+#ifndef DIJKSTRA_H
+#define DIJKSTRA_H
+#include "Graph.h"
+#include "priorityqueue.h"
+#include <vector>
+using namespace std;
+vector<int> dijkstra(Graph &g,int src,int des,int &total);
+#endif
+=== File: ./include/Road.h ===
+#ifndef ROAD_H
+#define ROAD_H
+#include <iostream>
+using namespace std;
+class Road {
+private:
+    int u;
+    int v;
+    double travelTime;
+    bool isBlocked;
+    double hazardLevel;
+public:
+    Road();
+    Road(int src, int dest, double time, double hazard = 1.0);
+    int getSrc();
+    int getDest();
+    double getTime();
+    bool getBlockedStatus();
+    void setBlocked(bool status);
+    void setHazardLevel(double hazard);
+    double getCost();
+    void printRoad();
+};
+
+#endif
+=== File: ./include/apiclient.h ===
+#ifndef APICLIENT_H
+#define APICLIENT_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class APIClient
+{
+public:
+    double temp;
+    double rain;
+    double wind;
+    int weatherCode;
+
+    APIClient();
+
+    bool getData(double lat,double lon);
+    int getStatus();
+    void showData();
+};
+
+#endif
+=== File: ./include/priorityqueue.h ===
+#ifndef PRIORITY_QUEUE_H
+#define PRIORITY_QUEUE_H
+#include <vector>
+using namespace std;
+struct PQNode
+{
+int node;
+int cost;
+};
+class PriorityQueue
+{
+private:
+vector<PQNode> q;
+public:
+void push(int node,int cost);
+PQNode pop();
+bool empty();
+};
+#endif
+=== File: ./src/Location.cpp ===
+#include "Location.h"
+
+Location::Location() {
+    locationId = -1;
+    locationName = "";
+    isSafeZone = false;
+}
+
+Location::Location(int id, string name, bool safe) {
+    locationId = id;
+    locationName = name;
+    isSafeZone = safe;
+}
+
+int Location::getId() {
+    return locationId;
+}
+
+string Location::getName() {
+    return locationName;
+}
+
+bool Location::checkSafeZone() {
+    return isSafeZone;
+}
+
+void Location::setSafeZone(bool status) {
+    isSafeZone = status;
+}
+
+void Location::printInfo() {
+    cout << "ID: " << locationId
+         << " | Name: " << locationName
+         << " | Safe Zone: " << (isSafeZone ? "YES" : "NO")
+         << endl;
+}
+=== File: ./src/Graph.cpp ===
+#include "Graph.h"
+
+Graph::Graph(int totalLocations) 
+{
+    adjList.resize(totalLocations);
+}
+void Graph::addRoad(Road road) 
+{
+    int source = road.getSrc();
+
+    if (source >= 0 && source < adjList.size()) {
+        adjList[source].push_back(road);
+    }
+}
+void Graph::showGraph() 
+{
+    cout << "\n     ADJACENCY LIST      " << endl;
+
+    for (int i = 0; i < adjList.size(); i++) 
+    {
+        cout << "Location " << i << " : ";
+        if (adjList[i].empty()) 
+        {
+            cout << "   No outgoing roads   ";
+        }
+        else 
+        {
+            for (int j = 0; j < adjList[i].size(); j++) 
+            {
+                cout << adjList[i][j].getDest();
+                if (j != adjList[i].size() - 1) {
+                    cout << " -> ";
+                }
+            }
+        }
+        cout << endl;
+    }
+}
+=== File: ./src/Disastermanagement.cpp ===
+#include "DisasterManager.h"
+void DisasterManager::updateRoad(Graph &g,int u,int v,int st)
+{
+int n=g.roads.size();
+for(int i=0;i<n;i++)
+{
+if(g.roads[i].src==u&&g.roads[i].des==v)
+{
+g.roads[i].sts=st;
+if(st==1)
+g.roads[i].cost=g.roads[i].dis;
+else if(st==2)
+g.roads[i].cost=g.roads[i].dis*2;
+else if(st==3)
+g.roads[i].cost=9999;
+else if(st==4)
+g.roads[i].cost=g.roads[i].dis*3;
+return;
+}
+if(g.roads[i].src==v&&g.roads[i].des==u)
+{
+g.roads[i].sts=st;
+if(st==1)
+g.roads[i].cost=g.roads[i].dis;
+else if(st==2)
+g.roads[i].cost=g.roads[i].dis*2;
+else if(st==3)
+g.roads[i].cost=9999;
+else if(st==4)
+g.roads[i].cost=g.roads[i].dis*3;
+return;
+}
+}
+cout<<"Road not found"<<endl;
+}
+void DisasterManager::showRoad(Graph &g)
+{
+int n=g.roads.size();
+for(int i=0;i<n;i++)
+{
+cout<<g.roads[i].src<<" -> "<<g.roads[i].des<<" ";
+if(g.roads[i].sts==1)
+cout<<"Safe";
+else if(g.roads[i].sts==2)
+cout<<"Risky";
+else if(g.roads[i].sts==3)
+cout<<"Blocked";
+else if(g.roads[i].sts==4)
+cout<<"Congested";
+cout<<" Cost: "<<g.roads[i].cost<<endl;
+}
+}
+=== File: ./src/locationroad.cpp ===
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+class Location {
+private:
+    int locationId;
+    string locationName;
+    bool isSafeZone;
+public:
+    Location() {
+        locationId = -1;
+        locationName = "";
+        isSafeZone = false;
+    }
+    Location(int id, string name, bool safe = false) {
+        locationId = id;
+        locationName = name;
+        isSafeZone = safe;
+    }
+    int getId() { 
+        return locationId; 
+    }
+    string getName() { 
+        return locationName; 
+    }
+    bool checkSafeZone() { 
+        return isSafeZone; 
+    }
+    void setSafeZone(bool status) { 
+        isSafeZone = status; 
+    }
+    void printInfo() {
+        cout << "ID: " << locationId 
+             << " | Name: " << locationName 
+             << " | Safe Zone: " << (isSafeZone ? "YES" : "NO") 
+             << endl;
+    }
+};
+class Road {
+private:
+    int u;            
+    int v;            
+    double travelTime;
+    bool isBlocked;
+    double hazardLevel; 
+public:
+    Road() {
+        u = -1;
+        v = -1;
+        travelTime = 0.0;
+        isBlocked = false;
+        hazardLevel = 1.0;
+    }
+    Road(int src, int dest, double time, double hazard = 1.0) {
+        u = src;
+        v = dest;
+        travelTime = time;
+        isBlocked = false;
+        hazardLevel = hazard;
+    }
+    int getSrc() { return u; }
+    int getDest() { return v; }
+    double getTime() { return travelTime; }
+    bool getBlockedStatus() { return isBlocked; }
+    void setBlocked(bool status) { 
+        isBlocked = status; 
+    }
+    void setHazardLevel(double hazard) { 
+        hazardLevel = hazard; 
+    }
+    double getCost() {
+        if (isBlocked) {
+            return 999999.0; 
+        }
+        return travelTime * hazardLevel;
+    }
+    void printRoad() {
+        cout << "Edge (" << u << " -> " << v << ")"
+             << " | Time: " << travelTime << " mins"
+             << " | Blocked: " << (isBlocked ? "True" : "False")
+             << " | Dynamic Weight: " << getCost() 
+             << endl;
+    }
+};
+
+class Graph 
+{
+private:
+
+    vector<vector<Road>> adjList;
+
+public:
+
+    Graph(int totalLocations)
+    {
+        adjList.resize(totalLocations);
+    }
+
+    void addRoad(Road road)
+    {
+        int source = road.getSrc();
+
+        if (source >= 0 && source < adjList.size()) {
+            adjList[source].push_back(road);
+        }
+    }
+
+    void showGraph() {
+        cout << "\n     ADJACENCY LIST      " << endl;
+
+        for (int i = 0; i < adjList.size(); i++) {
+            cout << "Location " << i << " : ";
+
+            if (adjList[i].empty()) {
+                cout << "   No outgoing roads   ";
+            }
+            else {
+                for (int j = 0; j < adjList[i].size(); j++) {
+                    cout << adjList[i][j].getDest();
+
+                    if (j != adjList[i].size() - 1) {
+                        cout << " -> ";
+                    }
+                }
+            }
+
+            cout << endl;
+        }
+    }
+};
+
+class NetworkSetup {
+public:
+    vector<Location> nodes;
+    vector<Road> edges;
+
+    void buildSampleGraph() {
+        nodes.push_back(Location(0, "Clock Tower", false));
+        nodes.push_back(Location(1, "ISBT Junction", false));
+        nodes.push_back(Location(2, "Rajpur Road", false));
+        nodes.push_back(Location(3, "Ballupur Flyover", false));
+        nodes.push_back(Location(4, "Military Shelter A", true));
+        nodes.push_back(Location(5, "City General Hospital", true));
+        edges.push_back(Road(0, 1, 12.5));
+        edges.push_back(Road(0, 2, 8.0));
+        edges.push_back(Road(1, 3, 15.0));
+        edges.push_back(Road(2, 3, 6.5));
+        edges.push_back(Road(2, 4, 22.0));
+        edges.push_back(Road(3, 4, 10.0));
+        edges.push_back(Road(3, 5, 18.0));
+    }
+    void displayNetwork() {
+        cout << "\n=== LOCATIONS LIST ===" << endl;
+        for (size_t i = 0; i < nodes.size(); i++) {
+            nodes[i].printInfo();
+        }
+
+        cout << "\n=== ROADS LIST ===" << endl;
+        for (size_t i = 0; i < edges.size(); i++) {
+            edges[i].printRoad();
+        }
+    }
+};
+int main() 
+{
+    NetworkSetup demoMap;
+    demoMap.buildSampleGraph();
+    Graph roadGraph(demoMap.nodes.size());
+    for (int i = 0; i < demoMap.edges.size(); i++)
+    {
+        roadGraph.addRoad(demoMap.edges[i]);
+    }
+    demoMap.displayNetwork();
+    roadGraph.showGraph();
+    cout << "\n     Updating Road Condition     " << endl;
+    cout << "   Simulating road block at Edge (3 -> 4)  " << endl;
+    demoMap.edges[5].setBlocked(true);
+    demoMap.edges[5].printRoad();
+    return 0;
+}
+=== File: ./src/Road.cpp ===
+#include "Road.h"
+
+Road::Road() 
+{
+    u = -1;
+    v = -1;
+    travelTime = 0.0;
+    isBlocked = false;
+    hazardLevel = 1.0;
+}
+Road::Road(int src, int dest, double time, double hazard)
+ {
+    u = src;
+    v = dest;
+    travelTime = time;
+    isBlocked = false;
+    hazardLevel = hazard;
+}
+int Road::getSrc() 
+{
+    return u;
+}
+int Road::getDest() 
+{
+    return v;
+}
+
+double Road::getTime() 
+{
+    return travelTime;
+}
+
+bool Road::getBlockedStatus() 
+{
+    return isBlocked;
+}
+
+void Road::setBlocked(bool status) 
+{
+    isBlocked = status;
+}
+
+void Road::setHazardLevel(double hazard) 
+{
+    hazardLevel = hazard;
+}
+
+
+double Road::getCost()
+ {
+    if (isBlocked)
+     {
+        return 999999.0;
+    }
+    return travelTime * hazardLevel;
+}
+
+void Road::printRoad() 
+{
+    cout << "Edge (" << u << " -> " << v << ")"
+         << " | Time: " << travelTime << " mins"
+         << " | Blocked: " << (isBlocked ? "True" : "False")
+         << " | Dynamic Weight: " << getCost()
+         << endl;
+}
+=== File: ./src/apiclient.cpp ===
+#include "APIClient.h"
+#include <curl/curl.h>
+#include <cstdlib>
+
+using namespace std;
+
+APIClient::APIClient()
+{
+    temp=0;
+    rain=0;
+    wind=0;
+    weatherCode=0;
+}
+
+size_t writeData(void *ptr,size_t size,size_t nmemb,void *data)
+{
+    string *str=(string*)data;
+    str->append((char*)ptr,size*nmemb);
+    return size*nmemb;
+}
+bool APIClient::getData(double lat,double lon)
+{
+    CURL *curl;
+    CURLcode res;
+    string data;
+    curl=curl_easy_init();
+    if(curl==NULL)
+    {
+        cout<<"Curl initialization failed"<<endl;
+        return false;
+    }
+    string url=
+    "https://api.open-meteo.com/v1/forecast?latitude="+
+    to_string(lat)+
+    "&longitude="+
+    to_string(lon)+
+    "&current=temperature_2m,precipitation,wind_speed_10m,weather_code";
+    curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,writeData);
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&data);
+    curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
+    curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
+    res=curl_easy_perform(curl);
+    if(res!=CURLE_OK)
+    {
+        cout<<"API request failed: "
+            <<curl_easy_strerror(res)<<endl;
+
+        curl_easy_cleanup(curl);
+        return false;
+    }
+    curl_easy_cleanup(curl);
+    size_t p;
+    p=data.find("\"temperature_2m\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        temp=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"precipitation\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        rain=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"wind_speed_10m\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        wind=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"weather_code\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        weatherCode=atoi(data.substr(p+1).c_str());
+   }
+    return true;
+}
+int APIClient::getStatus()
+{
+    if(rain>=10 || wind>=60)
+    return 3;
+    if(rain>=5 || wind>=40)
+        return 4;
+    if(rain>=2 || wind>=25)
+        return 2;
+
+    return 1;
+}
+void APIClient::showData()
+{
+    cout<<"Temperature: "<<temp<<" C"<<endl;
+    cout<<"Rainfall: "<<rain<<" mm"<<endl;
+    cout<<"Wind Speed: "<<wind<<" km/h"<<endl;
+    cout<<"Weather Code: "<<weatherCode<<endl;
+    cout<<"Current Status: ";
+    int st=getStatus();
+    if(st==1)
+        cout<<"Safe"<<endl;
+    else if(st==2)
+        cout<<"Risky"<<endl;
+    else if(st==3)
+        cout<<"Blocked"<<endl;
+    else if(st==4)
+        cout<<"Congested"<<endl;
+}
+=== File: ./src/menu.cpp ===
+#include<iostream>
+using namespace std;
+void displayMENU(){
+    cout<<"ADAPTIVE EMERGENCY EVACUATION SYSTEM "<<endl;
+    cout<<"1. Display Locations "<<endl;
+    cout<<"2. Display Roads"<<endl;
+    cout<< "3. Find Evacuation Route"<<endl;
+    cout<< "4. Updated Road Condition"<<endl;
+    cout<<"5. Exit"<<endl;
+    cout<<"ENTER YOUR CHOICE :"<<endl;
+}
+int main(){
+    int choice;
+    do {
+        displayMENU();
+        cin>>choice;
+switch(choice){
+    case 1: cout<<" Display locations "<<endl;
+         break;
+    case 2: cout<< "Displaying  Roads"<<endl;
+         break;
+    case 3: cout<<" Finding best evacuation route"<<endl;
+         break;
+    case 4: cout<<" Updating road condition"<<endl;
+         break;
+    case 5: cout<<"Thank you for using the system !"<<endl;
+         break;
+    default:cout<<"Invalid choice!! Please try again "<<endl;
+}
+    }
+while(choice!=5);
+
+return 0;}
+
+=== File: ./DisasterManager.h ===
+#ifndef DISASTER_MANAGER_H
+#define DISASTER_MANAGER_H
+#include "Graph.h"
+#include "Road.h"
+class DisasterManager
+{
+public:
+    void updateRoad(Graph &g,int u,int v,int st)
+    {
+        for(int i=0;i<g.roads.size();i++)
+        {
+            if((g.roads[i].src==u&&g.roads[i].des==v)||
+               (g.roads[i].src==v&&g.roads[i].des==u))
+            {
+                g.roads[i].sts=st;
+                if(st==1)
+                {
+                    g.roads[i].cost=g.roads[i].dis;
+                }
+                else if(st==2)
+                {
+                    g.roads[i].cost=g.roads[i].dis*2;
+                }
+                else if(st==3)
+                {
+                    g.roads[i].cost=9999;
+                }
+                else if(st==4)
+                {
+                    g.roads[i].cost=g.roads[i].dis*3;
+                }
+                return;
+            }
+        }
+    }
+    void showRoad(Graph &g)
+    {
+        for(int i=0;i<g.roads.size();i++)
+        {
+            cout<<g.roads[i].src<<" -> ";
+            cout<<g.roads[i].des<<" ";
+
+            if(g.roads[i].sts==1)
+                cout<<"Safe";
+            else if(g.roads[i].sts==2)
+                cout<<"Risky";
+            else if(g.roads[i].sts==3)
+                cout<<"Blocked";
+            else if(g.roads[i].sts==4)
+                cout<<"Congested";
+            cout<<" Cost: "<<g.roads[i].cost<<endl;
+        }
+    }
+};
+#endif
+
+
+
+========== FILE: ./src/DataLoader.cpp ==========
+
 #include "Graph.h"
 #include <iostream>
 #include <fstream>
@@ -741,19 +1489,15 @@ Graph loadGraphFromJSON(const string& filename)
 
 
 
-================================================================================
-FILE: src/DatabaseManager.cpp
-================================================================================
-#include "DatabaseManager.h"
+========== FILE: ./src/DatabaseManager.cpp ==========
 
+#include "DatabaseManager.h"
 #include <chrono>
 #include <cstdint>
 #include <iostream>
-
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/builder/basic/kvp.hpp>
 #include <bsoncxx/types.hpp>
-
 #include <mongocxx/exception/exception.hpp>
 #include <mongocxx/options/replace.hpp>
 
@@ -920,9 +1664,8 @@ bool DatabaseManager::deleteLocation(int id) {
     }
 }
 
-================================================================================
-FILE: src/Disastermanagement.cpp
-================================================================================
+========== FILE: ./src/Disastermanagement.cpp ==========
+
 #include "DisasterManager.h"
 
 #include <iostream>
@@ -971,7 +1714,10 @@ void DisasterManager::showRoad(Graph &g)
 }
 
 
-========== FILE: src/Graph.cpp ==========
+
+
+========== FILE: ./src/Graph.cpp ==========
+
 #include "Graph.h"
 
 Graph::Graph(int totalLocations) 
@@ -1103,136 +1849,8 @@ void Graph::showGraph()
 
 
 
-================================================================================
-FILE: src/Graph.cpp
-================================================================================
-#include "Graph.h"
+========== FILE: ./src/Location.cpp ==========
 
-Graph::Graph(int totalLocations) 
-{
-    adjList.resize(totalLocations);
-}
-void Graph::addRoad(Road road) 
-{
-    int source = road.getSrc();
-
-    if (source >= 0 && source < adjList.size()) {
-        adjList[source].push_back(road);
-    }
-}
-bool Graph::updateRoadStatus(int u, int v, int status)
-{
-    if (u < 0 || u >= static_cast<int>(adjList.size()) ||
-        v < 0 || v >= static_cast<int>(adjList.size()))
-        return false;
-
-    bool found = false;
-
-    auto update = [&](int src, int dest) {
-        for (auto &road : adjList[src]) {
-            if (road.getDest() == dest) {
-                if (status == 1) {
-                    road.setBlocked(false);
-                    road.setHazardLevel(1.0);
-                } else if (status == 2) {
-                    road.setBlocked(false);
-                    road.setHazardLevel(2.0);
-                } else if (status == 3) {
-                    road.setBlocked(true);
-                } else if (status == 4) {
-                    road.setBlocked(false);
-                    road.setHazardLevel(3.0);
-                } else {
-                    return;
-                }
-                found = true;
-            }
-        }
-    };
-
-    if (status < 1 || status > 4)
-        return false;
-
-    update(u, v);
-    update(v, u);
-
-    return found;
-}
-
-bool Graph::getRoadDetails(
-    int u, int v, double& time, bool& blocked, double& cost, int& status)
-{
-    if (u < 0 || u >= static_cast<int>(adjList.size()))
-        return false;
-
-    for (auto &road : adjList[u]) {
-        if (road.getDest() == v) {
-            time = road.getTime();
-            blocked = road.getBlockedStatus();
-            cost = road.getCost();
-
-            if (blocked)
-                status = 3;
-            else if (time != 0.0 && cost >= time * 2.5)
-                status = 4;
-            else if (time != 0.0 && cost >= time * 1.5)
-                status = 2;
-            else
-                status = 1;
-
-            return true;
-        }
-    }
-    if (v >= 0 && v < static_cast<int>(adjList.size())) {
-    for (auto &road : adjList[v]) {
-        if (road.getDest() == u) {
-            time = road.getTime();
-            blocked = road.getBlockedStatus();
-            cost = road.getCost();
-
-            if (blocked)
-                status = 3;
-            else if (time != 0.0 && cost >= time * 2.5)
-                status = 4;
-            else if (time != 0.0 && cost >= time * 1.5)
-                status = 2;
-            else
-                status = 1;
-
-            return true;
-        }
-    }
-}
-    return false;
-}
-void Graph::showGraph() 
-{
-    cout << "\n     ADJACENCY LIST      " << endl;
-
-    for (int i = 0; i < adjList.size(); i++) 
-    {
-        cout << "Location " << i << " : ";
-        if (adjList[i].empty()) 
-        {
-            cout << "   No outgoing roads   ";
-        }
-        else 
-        {
-            for (int j = 0; j < adjList[i].size(); j++) 
-            {
-                cout << adjList[i][j].getDest();
-                if (j != adjList[i].size() - 1) {
-                    cout << " -> ";
-                }
-            }
-        }
-        cout << endl;
-    }
-}
-
-================================================================================
-FILE: src/Location.cpp
-================================================================================
 #include "Location.h"
 
 Location::Location() {
@@ -1271,7 +1889,8 @@ void Location::printInfo() {
 }
 
 
-========== FILE: src/Road.cpp ==========
+========== FILE: ./src/Road.cpp ==========
+
 #include "Road.h"
 
 Road::Road() 
@@ -1339,79 +1958,8 @@ void Road::printRoad()
 }
 
 
-================================================================================
-FILE: src/Road.cpp
-================================================================================
-#include "Road.h"
+========== FILE: ./src/RouteOptimizer.cpp ==========
 
-Road::Road() 
-{
-    u = -1;
-    v = -1;
-    travelTime = 0.0;
-    isBlocked = false;
-    hazardLevel = 1.0;
-}
-Road::Road(int src, int dest, double time, double hazard)
- {
-    u = src;
-    v = dest;
-    travelTime = time;
-    isBlocked = false;
-    hazardLevel = hazard;
-}
-int Road::getSrc() 
-{
-    return u;
-}
-int Road::getDest() 
-{
-    return v;
-}
-
-double Road::getTime() 
-{
-    return travelTime;
-}
-
-bool Road::getBlockedStatus() 
-{
-    return isBlocked;
-}
-
-void Road::setBlocked(bool status) 
-{
-    isBlocked = status;
-}
-
-void Road::setHazardLevel(double hazard) 
-{
-    hazardLevel = hazard;
-}
-
-
-double Road::getCost()
- {
-    if (isBlocked)
-     {
-        return 999999.0;
-    }
-    return travelTime * hazardLevel;
-}
-
-void Road::printRoad() 
-{
-    cout << "Edge (" << u << " -> " << v << ")"
-         << " | Time: " << travelTime << " mins"
-         << " | Blocked: " << (isBlocked ? "True" : "False")
-         << " | Dynamic Weight: " << getCost()
-         << endl;
-}
-
-
-================================================================================
-FILE: src/RouteOptimizer.cpp
-================================================================================
 #include "RouteOptimizer.h"
 #include "priorityqueue.h"
 #include <algorithm>
@@ -1486,131 +2034,21 @@ vector<int> RouteOptimizer::findRoute(Graph &g, int src, int des, double &totalC
     return path;
 }
 
-================================================================================
-FILE: src/apiclient.cpp
-================================================================================
-#include "apiclient.h"
-#include <curl/curl.h>
-#include <cstdlib>
+========== FILE: ./src/apiclient.cpp ==========
 
-using namespace std;
-
-APIClient::APIClient()
-{
-    temp=0;
-    rain=0;
-    wind=0;
-    weatherCode=0;
-}
-
-size_t writeData(void *ptr,size_t size,size_t nmemb,void *data)
-{
-    string *str=(string*)data;
-    str->append((char*)ptr,size*nmemb);
-    return size*nmemb;
-}
-bool APIClient::getData(double lat,double lon)
-{
-    CURL *curl;
-    CURLcode res;
-    string data;
-    curl=curl_easy_init();
-    if(curl==NULL)
-    {
-        cout<<"Curl initialization failed"<<endl;
-        return false;
-    }
-    string url=
-    "https://api.open-meteo.com/v1/forecast?latitude="+
-    to_string(lat)+
-    "&longitude="+
-    to_string(lon)+
-    "&current=temperature_2m,precipitation,wind_speed_10m,weather_code";
-    curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
-    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,writeData);
-    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&data);
-    curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
-    curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
-    res=curl_easy_perform(curl);
-    if(res!=CURLE_OK)
-    {
-        cout<<"API request failed: "
-            <<curl_easy_strerror(res)<<endl;
-
-        curl_easy_cleanup(curl);
-        return false;
-    }
-    curl_easy_cleanup(curl);
-    size_t p;
-    p=data.find("\"temperature_2m\":");
-    if(p!=string::npos)
-    {
-        p=data.find(":",p);
-        temp=atof(data.substr(p+1).c_str());
-    }
-    p=data.find("\"precipitation\":");
-    if(p!=string::npos)
-    {
-        p=data.find(":",p);
-        rain=atof(data.substr(p+1).c_str());
-    }
-    p=data.find("\"wind_speed_10m\":");
-    if(p!=string::npos)
-    {
-        p=data.find(":",p);
-        wind=atof(data.substr(p+1).c_str());
-    }
-    p=data.find("\"weather_code\":");
-    if(p!=string::npos)
-    {
-        p=data.find(":",p);
-        weatherCode=atoi(data.substr(p+1).c_str());
-   }
-    return true;
-}
-int APIClient::getStatus()
-{
-    if(rain>=10 || wind>=60)
-    return 3;
-    if(rain>=5 || wind>=40)
-        return 4;
-    if(rain>=2 || wind>=25)
-        return 2;
-
-    return 1;
-}
-void APIClient::showData()
-{
-    cout<<"Temperature: "<<temp<<" C"<<endl;
-    cout<<"Rainfall: "<<rain<<" mm"<<endl;
-    cout<<"Wind Speed: "<<wind<<" km/h"<<endl;
-    cout<<"Weather Code: "<<weatherCode<<endl;
-    cout<<"Current Status: ";
-    int st=getStatus();
-    if(st==1)
-        cout<<"Safe"<<endl;
-    else if(st==2)
-        cout<<"Risky"<<endl;
-    else if(st==3)
-        cout<<"Blocked"<<endl;
-    else if(st==4)
-        cout<<"Congested"<<endl;
-}
-
-================================================================================
-FILE: src/menu.cpp
-================================================================================
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
-
+#include "apiclient.h"
 #include "DatabaseManager.h"
 #include "DisasterManager.h"
 #include "Graph.h"
 #include "RouteOptimizer.h"
 #include "Road.h"
+#include <bsoncxx/document/view.hpp>
+#include <bsoncxx/types.hpp>
 
 using namespace std;
 
@@ -1621,7 +2059,8 @@ static void displayMenu()
          << "2. Find evacuation route\n"
          << "3. Update road condition (and save to MongoDB)\n"
          << "4. Test MongoDB connection\n"
-         << "5. Exit\n"
+         << "5. Check live weather API\n"
+         << "6. Exit\n"
          << "Enter choice: ";
 }
 
@@ -1633,31 +2072,105 @@ static void clearInput()
 
 int main()
 {
-    // Small demonstration network; replace with DataLoader when JSON schema is finalized.
     Graph graph(6);
-    graph.addRoad(Road(0, 1, 12.5));
-    graph.addRoad(Road(0, 2, 8.0));
-    graph.addRoad(Road(1, 3, 15.0));
-    graph.addRoad(Road(2, 3, 6.5));
-    graph.addRoad(Road(2, 4, 22.0));
-    graph.addRoad(Road(3, 4, 10.0));
-    graph.addRoad(Road(3, 5, 18.0));
+
+    const char* uriEnv = std::getenv("MONGODB_URI");
+    const char* dbEnv = std::getenv("MONGODB_DATABASE");
+
+    bool dbConfigured = uriEnv && *uriEnv && dbEnv && *dbEnv;
+    bool roadsLoaded = false;
+
+    if (dbConfigured) {
+        try {
+            DatabaseManager db(uriEnv, dbEnv);
+
+            if (db.ping()) {
+                auto roads = db.getAllRoads();
+
+                for (const auto& document : roads) {
+                    auto view = document.view();
+
+                    auto fromElement = view["fromLocation"];
+                    auto toElement = view["toLocation"];
+                    auto distanceElement = view["distance"];
+                    auto statusElement = view["status"];
+
+                    if (!fromElement || !toElement || !distanceElement || !statusElement) {
+                        continue;
+                    }
+
+                    int u = (fromElement.type() == bsoncxx::type::k_int32) 
+                        ? fromElement.get_int32().value 
+                        : static_cast<int>(fromElement.get_double().value);
+                        
+                    int v = (toElement.type() == bsoncxx::type::k_int32) 
+                        ? toElement.get_int32().value 
+                        : static_cast<int>(toElement.get_double().value);
+                        
+                    double distance = (distanceElement.type() == bsoncxx::type::k_double) 
+                        ? distanceElement.get_double().value 
+                        : static_cast<double>(distanceElement.get_int32().value);
+                        
+                    int status = (statusElement.type() == bsoncxx::type::k_int32) 
+                        ? statusElement.get_int32().value 
+                        : static_cast<int>(statusElement.get_double().value);
+
+                    if (u < 0 || u >= 6 || v < 0 || v >= 6 || u == v || status < 1 || status > 4 || distance <= 0) {
+                        continue;
+                    }
+
+                    double hazard = 1.0;
+                    if (status == 2) hazard = 2.0;
+                    if (status == 4) hazard = 3.0;
+
+                    Road road1(u, v, distance, hazard);
+                    Road road2(v, u, distance, hazard); // Add reverse edge for 2-way road
+
+                    if (status == 3) {
+                        road1.setBlocked(true);
+                        road2.setBlocked(true);
+                    }
+
+                    graph.addRoad(road1);
+                    graph.addRoad(road2);
+                }
+
+                roadsLoaded = !roads.empty();
+                if (roadsLoaded) {
+                    cout << "Loaded road records from MongoDB.\n";
+                }
+            }
+        } catch (const std::exception& e) {
+            cerr << "Could not load roads from MongoDB: " << e.what() << '\n';
+        }
+    }
+
+    if (!roadsLoaded) {
+        cout << "Using the demonstration road network.\n";
+
+        auto addTwoWay = [&](int u, int v, double time) {
+            graph.addRoad(Road(u, v, time));
+            graph.addRoad(Road(v, u, time));
+        };
+
+        addTwoWay(0, 1, 12.5);
+        addTwoWay(0, 2, 8.0);
+        addTwoWay(1, 3, 15.0);
+        addTwoWay(2, 3, 6.5);
+        addTwoWay(2, 4, 22.0);
+        addTwoWay(3, 4, 10.0);
+        addTwoWay(3, 5, 18.0);
+    }
 
     RouteOptimizer optimizer;
     DisasterManager disasterManager;
 
-    const char* uriEnv = std::getenv("MONGODB_URI");
-    const char* dbEnv = std::getenv("MONGODB_DATABASE");
-    bool dbConfigured = uriEnv && *uriEnv && dbEnv && *dbEnv;
-
-    // Create DB manager only when credentials are configured.
-    // mongocxx::instance is static inside DatabaseManager.
     int choice = 0;
     do {
         displayMenu();
         if (!(cin >> choice)) {
             clearInput();
-            cout << "Please enter a number from 1 to 5.\n";
+            cout << "Please enter a number from 1 to 6.\n";
             continue;
         }
 
@@ -1665,6 +2178,7 @@ int main()
         case 1:
             graph.showGraph();
             break;
+
         case 2: {
             int src, dest;
             cout << "Enter source and destination location IDs (0-5): ";
@@ -1687,6 +2201,7 @@ int main()
             }
             break;
         }
+
         case 3: {
             if (!dbConfigured) {
                 cout << "MongoDB is not configured. Set MONGODB_URI and "
@@ -1713,6 +2228,7 @@ int main()
             }
             break;
         }
+
         case 4: {
             if (!dbConfigured) {
                 cout << "Set MONGODB_URI and MONGODB_DATABASE first.\n";
@@ -1726,13 +2242,190 @@ int main()
             }
             break;
         }
-        case 5:
+
+        case 5: {
+            double lat, lon;
+
+            cout << "Enter latitude: ";
+            if (!(cin >> lat)) {
+                clearInput();
+                cout << "Invalid input for latitude.\n";
+                break;
+            }
+
+            cout << "Enter longitude: ";
+            if (!(cin >> lon)) {
+                clearInput();
+                cout << "Invalid input for longitude.\n";
+                break;
+            }
+
+            APIClient api;
+            if (api.getData(lat, lon)) {
+                api.showData();
+            } else {
+                cout << "Could not fetch weather data.\n";
+            }
+            break;
+        }
+
+        case 6:
             cout << "Thank you for using the system!\n";
             break;
+
         default:
             cout << "Invalid choice. Please try again.\n";
         }
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
+}
+
+========== FILE: ./src/menu.cpp ==========
+
+#include "apiclient.h"
+
+#include <curl/curl.h>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+static size_t writeData(void* ptr, size_t size, size_t nmemb, void* data)
+{
+    string* response = static_cast<string*>(data);
+    response->append(static_cast<char*>(ptr), size * nmemb);
+    return size * nmemb;
+}
+
+APIClient::APIClient()
+    : temp(0), rain(0), wind(0), weatherCode(0)
+{
+}
+
+bool APIClient::getData(double lat, double lon)
+{
+    CURL* curl = curl_easy_init();
+
+    if (!curl) {
+        cerr << "Curl initialization failed.\n";
+        return false;
+    }
+
+    string response;
+
+    string url =
+        "https://api.open-meteo.com/v1/forecast?latitude=" +
+        to_string(lat) +
+        "&longitude=" + to_string(lon) +
+        "&current=temperature_2m,precipitation,wind_speed_10m,weather_code";
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeData);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20L);
+
+    CURLcode result = curl_easy_perform(curl);
+
+    long httpCode = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+    curl_easy_cleanup(curl);
+
+    if (result != CURLE_OK || httpCode != 200) {
+        cerr << "Weather API request failed: "
+             << (result != CURLE_OK
+                     ? curl_easy_strerror(result)
+                     : "HTTP " + to_string(httpCode))
+             << '\n';
+        return false;
+    }
+
+    // Extract fields specifically from the "current" JSON object.
+    size_t currentPos = response.find("\"current\"");
+    if (currentPos == string::npos) {
+        cerr << "API response has no current weather data.\n";
+        return false;
+    }
+
+    size_t objectStart = response.find('{', currentPos);
+    size_t objectEnd = response.find('}', objectStart);
+
+    if (objectStart == string::npos || objectEnd == string::npos) {
+        cerr << "Invalid current weather JSON object.\n";
+        return false;
+    }
+
+    string current = response.substr(
+        objectStart, objectEnd - objectStart + 1);
+
+    auto readNumber = [&](const string& key, double& value) -> bool {
+        size_t pos = current.find("\"" + key + "\"");
+        if (pos == string::npos) return false;
+
+        pos = current.find(':', pos);
+        if (pos == string::npos) return false;
+
+        const char* start = current.c_str() + pos + 1;
+        while (*start == ' ' || *start == '\n' || *start == '\t')
+            ++start;
+
+        if (*start == '\0' || *start == 'n') return false;
+
+        char* end = nullptr;
+        double parsed = strtod(start, &end);
+
+        if (end == start) return false;
+
+        value = parsed;
+        return true;
+    };
+
+    double newTemp, newRain, newWind, newCode;
+
+    if (!readNumber("temperature_2m", newTemp) ||
+        !readNumber("precipitation", newRain) ||
+        !readNumber("wind_speed_10m", newWind) ||
+        !readNumber("weather_code", newCode)) {
+        cerr << "Could not parse all weather fields from API response.\n";
+        return false;
+    }
+
+    temp = newTemp;
+    rain = newRain;
+    wind = newWind;
+    weatherCode = static_cast<int>(newCode);
+
+    return true;
+}
+
+int APIClient::getStatus()
+{
+    if (rain >= 10 || wind >= 60)
+        return 3;
+    if (rain >= 5 || wind >= 40)
+        return 4;
+    if (rain >= 2 || wind >= 25)
+        return 2;
+
+    return 1;
+}
+
+void APIClient::showData()
+{
+    cout << "Temperature: " << temp << " C\n";
+    cout << "Rainfall: " << rain << " mm\n";
+    cout << "Wind Speed: " << wind << " km/h\n";
+    cout << "Weather Code: " << weatherCode << '\n';
+
+    cout << "Current Status: ";
+    switch (getStatus()) {
+        case 1: cout << "Safe\n"; break;
+        case 2: cout << "Risky\n"; break;
+        case 3: cout << "Blocked\n"; break;
+        case 4: cout << "Congested\n"; break;
+    }
 }
