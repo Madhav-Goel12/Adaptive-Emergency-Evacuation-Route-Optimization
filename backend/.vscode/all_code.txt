@@ -1,0 +1,1738 @@
+
+================================================================================
+FILE: .env.example
+================================================================================
+
+
+================================================================================
+FILE: .gitignore
+================================================================================
+.env
+
+
+================================================================================
+FILE: CMakeLists.txt
+================================================================================
+cmake_minimum_required(VERSION 3.15)
+project(AdaptiveEmergencyEvacuationRouteOptimization LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+find_package(mongocxx REQUIRED)
+find_package(bsoncxx REQUIRED)
+find_package(CURL REQUIRED)
+
+add_executable(evacuation_app
+    src/menu.cpp
+    src/Location.cpp
+    src/Road.cpp
+    src/Graph.cpp
+    src/RouteOptimizer.cpp
+    src/Disastermanagement.cpp
+    src/DatabaseManager.cpp
+    src/apiclient.cpp
+    src/DataLoader.cpp
+    algorithms/priorityqueue.cpp
+    algorithms/pathreconstruction.cpp
+)
+
+target_include_directories(evacuation_app PRIVATE include algorithms)
+target_link_libraries(evacuation_app PRIVATE
+    mongo::mongocxx_shared
+    mongo::bsoncxx_shared
+    CURL::libcurl
+)
+
+
+================================================================================
+FILE: README.md
+================================================================================
+# Adaptive Emergency Evacuation Route Optimization
+
+An intelligent emergency response navigation system built in C++ that dynamically calculates safe evacuation routes during disasters (floods, fires, and road blockages) using graph theory and shortest-path algorithms.
+
+---
+
+##  Project Overview
+
+During severe emergencies, standard GPS routes can become hazardous or impassable due to sudden road damage, active hazard zones, or traffic jams. Traditional static routing systems fail to adapt to changing conditions.
+
+This project models a city road network as a **dynamic weighted graph**. It computes evacuation routes using **Dijkstra's Algorithm combined with a Priority Queue**. When road conditions change, edge weights are updated to help recalculate safer alternate paths.
+
+---
+
+##  Project Progress & Compilation Status
+
+**Overall Backend Progress: Approximately 70–75%**
+
+The core backend modules and route optimization logic have been developed. The remaining work mainly involves database integration, testing, error handling, and frontend development.
+
+### Implementation Checklist
+
+- [x] **Location Module** — Represents locations in the road network.
+- [x] **Road Module** — Represents roads and their associated properties.
+- [x] **Graph Module** — Represents the road network using an adjacency list.
+- [x] **Dijkstra's Algorithm** — Calculates shortest paths using weighted edges.
+- [x] **Priority Queue** — Supports efficient selection of the next node during route calculation.
+- [x] **Route Optimization Logic** — Determines routes based on road weights.
+- [x] **Disaster Manager** — Handles changes in road conditions, including safe, risky, congested, and blocked roads.
+- [x] **Weather API Integration** — Weather-related integration has been developed; live API reliability and end-to-end behaviour require testing.
+- [ ] **MongoDB Integration** — Complete database connectivity and data persistence.
+- [ ] **End-to-End Testing** — Test route calculations, changing road conditions, and alternate routes.
+- [ ] **Error Handling** — Improve handling of invalid inputs, API failures, and unavailable routes.
+- [ ] **Frontend Development** — Build the user interface for entering locations and viewing routes.
+- [ ] **Map Visualization** — Display the road network and calculated evacuation routes visually.
+- [ ] **Final Integration and Demonstration** — Validate the complete system.
+
+**Compilation Note:** The core backend modules have been developed. A fresh build is required to confirm that the complete project compiles successfully together. Individual implementation completion does not necessarily mean every module has passed compilation and integration testing.
+
+---
+
+##  System Architecture & Execution Pipeline
+
+### [1] USER INPUT
+- Receives the origin node (start location).
+- Receives the destination node (evacuation centre or safe zone).
+
+↓
+
+### [2] ROAD NETWORK DATA
+- Represents locations as graph nodes using `Location` objects.
+- Represents connections as edges using `Road` objects.
+- Assigns weights based on road properties and conditions.
+
+↓
+
+### [3] DIJKSTRA'S ALGORITHM + PRIORITY QUEUE
+- Evaluates paths using a priority queue.
+- Calculates the minimum-cost route based on the current edge weights.
+
+↓
+
+### [4] INITIAL BEST ROUTE
+- Establishes the initial evacuation route.
+- Route output is handled by the backend; a graphical route display is planned for the frontend.
+
+↓
+
+### [5] ROAD CONDITION UPDATE
+- Handles changes such as road blockages, flooding, or increased risk.
+- Updates the affected road's status or associated cost.
+
+↓
+
+### [6] ALTERNATE ROUTE RECALCULATION
+- Recalculates the route using the updated graph weights.
+- Finds an alternate path when a suitable route is available.
+
+---
+
+##  Key Features
+
+- **Dynamic Edge Weighting:** Adjusts route costs according to road conditions, risk levels, and blockage status.
+- **Safety Centre Routing:** Supports routing towards designated evacuation zones and medical centres.
+- **Alternate Route Calculation:** Recalculates routes when road conditions change.
+- **Weather Integration:** Incorporates weather-related information through API integration.
+- **Object-Oriented Design:** Uses modular C++ classes for maintainable code.
+- **Modular Backend:** Separates graph representation, road data, location data, disaster management, and route optimization.
+
+---
+
+## 🛠️ Data Structures & Algorithms Used
+
+- **Graph Representation:** Adjacency list for storing locations and road connections.
+- **Priority Queue / Min-Heap:** Helps select the next node with the lowest tentative cost.
+- **Dijkstra's Algorithm:** Computes minimum-cost paths for non-negative edge weights.
+- **Object-Oriented Programming:** Uses classes such as `Location`, `Road`, `Graph`, and `RouteOptimizer`.
+- **Dynamic Edge Weights:** Represents changing road conditions through adjusted route costs.
+
+---
+
+##  Current Limitations
+
+- The frontend and interactive map view have not yet been implemented.
+- Live traffic and real-time road blockage data are not yet fully integrated.
+- MongoDB connectivity and persistence need to be completed and validated.
+- Full end-to-end testing and final integration are pending.
+
+---
+
+##  Future Scope
+
+- Complete MongoDB integration for storing locations, roads, weather information, emergencies, and routes.
+- Develop an interactive frontend with map-based route visualization.
+- Integrate more reliable live weather, traffic, and road-condition data.
+- Improve error handling, route validation, and system testing.
+- Extend the system to support larger road networks and additional emergency scenarios.
+
+---
+
+##  Project Status
+
+The project is currently focused on completing and validating the backend. The main graph structures and route optimization components have been developed, with approximately **70–75% of the backend work completed**. Database integration, comprehensive testing, frontend development, and map visualization remain part of the upcoming work.
+
+
+================================================================================
+FILE: algorithms/dijkstra.cpp
+================================================================================
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <functional>
+using namespace std;
+
+vector<int> dijkstra(int src, vector<vector<pair<int, int>>>& graph) {
+    int n = graph.size();
+    vector<int> dist(n, INT_MAX);
+
+    priority_queue<pair<int, int>,
+                   vector<pair<int, int>>,
+                   greater<pair<int, int>>> pq;
+
+    dist[src] = 0;
+    pq.push({0, src});
+
+    while (!pq.empty()) {
+        int d = pq.top().first;
+        int u = pq.top().second;
+        pq.pop();
+
+        if (d > dist[u])
+            continue;
+
+        for (auto edge : graph[u]) {
+            int v = edge.first;
+            int w = edge.second;
+
+            if (dist[u] != INT_MAX && dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    return dist;
+}
+
+int main() {
+    int n = 5;
+    vector<vector<pair<int, int>>> graph(n);
+
+    graph[0].push_back({1, 4});
+    graph[0].push_back({2, 1});
+    graph[2].push_back({1, 2});
+    graph[1].push_back({3, 1});
+    graph[2].push_back({3, 5});
+    graph[3].push_back({4, 3});
+
+    vector<int> dist = dijkstra(0, graph);
+
+    cout << "Shortest distances from location 0:\n";
+
+    for (int i = 0; i < n; i++) {
+        cout << "Location " << i << ": ";
+
+        if (dist[i] == INT_MAX)
+            cout << "Unreachable";
+        else
+            cout << dist[i];
+
+        cout << endl;
+    }
+
+    return 0;
+}
+
+
+================================================================================
+FILE: algorithms/pathreconstruction.cpp
+================================================================================
+#include "PathReconstruction.h"
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+vector<int> getPath(vector<int> &par, int src, int des) {
+    vector<int> path;
+    int cur = des;
+
+    while (cur != -1) {
+        path.push_back(cur);
+
+        if (cur == src)
+            break;
+
+        cur = par[cur];
+    }
+
+    if (path.back() != src) {
+        path.clear();
+        return path;
+    }
+
+    reverse(path.begin(), path.end());
+    return path;
+}
+
+
+================================================================================
+FILE: algorithms/priorityqueue.cpp
+================================================================================
+#include "priorityqueue.h"
+#include <algorithm>
+#include <stdexcept>
+
+void PriorityQueue::push(int node, double cost)
+{
+    q.push_back({node, cost});
+    int i = static_cast<int>(q.size()) - 1;
+
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (q[parent].cost <= q[i].cost)
+            break;
+        std::swap(q[parent], q[i]);
+        i = parent;
+    }
+}
+
+PQNode PriorityQueue::pop()
+{
+    if (q.empty())
+        throw std::out_of_range("PriorityQueue::pop called on empty queue");
+
+    PQNode result = q.front();
+    q.front() = q.back();
+    q.pop_back();
+
+    int i = 0;
+    const int n = static_cast<int>(q.size());
+    while (true) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        int smallest = i;
+
+        if (left < n && q[left].cost < q[smallest].cost)
+            smallest = left;
+        if (right < n && q[right].cost < q[smallest].cost)
+            smallest = right;
+        if (smallest == i)
+            break;
+
+        std::swap(q[i], q[smallest]);
+        i = smallest;
+    }
+    return result;
+}
+
+bool PriorityQueue::empty()
+{
+    return q.empty();
+}
+
+
+================================================================================
+FILE: include/Data_loader.h
+================================================================================
+#ifndef DATA_LOADER_H
+#define DATA_LOADER_H
+
+#include <string>
+#include "Graph.h"
+
+Graph loadGraphFromJSON(const std::string& filename);
+
+#endif
+
+
+
+================================================================================
+FILE: include/DatabaseManager.h
+================================================================================
+#ifndef DATABASE_MANAGER_H
+#define DATABASE_MANAGER_H
+
+#include <string>
+#include <vector>
+
+#include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/uri.hpp>
+#include <mongocxx/collection.hpp>
+
+#include <bsoncxx/document/value.hpp>
+
+class DatabaseManager {
+private:
+    // The MongoDB driver instance must outlive the client.
+    static mongocxx::instance instance;
+    mongocxx::client client;
+    mongocxx::database database;
+
+public:
+    DatabaseManager(
+        const std::string& connectionString,
+        const std::string& databaseName
+    );
+
+    bool ping();
+
+    bool saveLocation(
+        int id,
+        const std::string& name,
+        double latitude,
+        double longitude
+    );
+
+   bool saveRoad(
+    int roadId,
+    int fromLocation,
+    int toLocation,
+    double distance,
+    int status,
+    double cost
+);
+
+    bool saveEvacuationLog(
+        const std::string& eventType,
+        const std::string& details
+    );
+
+    std::vector<bsoncxx::document::value> getAllLocations();
+
+    std::vector<bsoncxx::document::value> getAllRoads();
+
+    bool deleteLocation(int id);
+};
+
+#endif
+
+
+================================================================================
+FILE: include/Dijkstra.h
+================================================================================
+#ifndef DIJKSTRA_H
+#define DIJKSTRA_H
+#include "Graph.h"
+#include "priorityqueue.h"
+#include <vector>
+using namespace std;
+vector<int> dijkstra(Graph &g,int src,int des,int &total);
+#endif
+
+================================================================================
+FILE: include/DisasterManager.h
+================================================================================
+#ifndef DISASTER_MANAGER_H
+#define DISASTER_MANAGER_H
+
+#include "Graph.h"
+#include "Road.h"
+#include "DatabaseManager.h"
+
+class DisasterManager
+{
+public:
+    void updateRoad(Graph &g, int u, int v, int status,
+                    DatabaseManager &db);
+
+    void showRoad(Graph &g);
+};
+
+#endif
+
+
+================================================================================
+FILE: include/Graph.h
+================================================================================
+#ifndef GRAPH_H
+#define GRAPH_H
+
+#include <iostream>
+#include <vector>
+#include "Road.h"
+using namespace std;
+class Graph 
+{
+private:
+    vector<vector<Road>> adjList;
+public:
+    Graph(int totalLocations);
+    void addRoad(Road road);
+    void showGraph();
+    vector<vector<Road>>& getAdjList();
+    bool updateRoadStatus(int u, int v, int status);
+bool getRoadDetails(int u, int v, double& time,
+                    bool& blocked, double& cost, int& status);
+};
+#endif
+
+================================================================================
+FILE: include/Location.h
+================================================================================
+#ifndef LOCATION_H
+#define LOCATION_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Location {
+private:
+    int locationId;
+    string locationName;
+    bool isSafeZone;
+
+public:
+    Location();
+    Location(int id, string name, bool safe = false);
+
+    int getId();
+    string getName();
+    bool checkSafeZone();
+    void setSafeZone(bool status);
+    void printInfo();
+};
+
+#endif
+
+================================================================================
+FILE: include/PathReconstruction.h
+================================================================================
+#ifndef PATH_RECONSTRUCTION_H
+#define PATH_RECONSTRUCTION_H
+#include <vector>
+using namespace std;
+vector<int> getPath(vector<int> &par,int src,int des);
+#endif
+
+
+================================================================================
+FILE: include/Road.h
+================================================================================
+#ifndef ROAD_H
+#define ROAD_H
+#include <iostream>
+using namespace std;
+class Road {
+private:
+    int u;
+    int v;
+    double travelTime;
+    bool isBlocked;
+    double hazardLevel;
+public:
+    Road();
+    Road(int src, int dest, double time, double hazard = 1.0);
+    int getSrc();
+    int getDest();
+    double getTime();
+    bool getBlockedStatus();
+    void setBlocked(bool status);
+    void setHazardLevel(double hazard);
+    double getCost();
+    void printRoad();
+};
+
+#endif
+
+
+================================================================================
+FILE: include/RouteOptimizer.h
+================================================================================
+#ifndef ROUTE_OPTIMIZER_H
+#define ROUTE_OPTIMIZER_H
+
+#include "Graph.h"
+#include <vector>
+using namespace std;
+
+class RouteOptimizer
+{
+public:
+    vector<int> findRoute(Graph &g, int src, int des, double &totalCost);
+};
+
+#endif
+
+================================================================================
+FILE: include/apiclient.h
+================================================================================
+#ifndef APICLIENT_H
+#define APICLIENT_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class APIClient
+{
+public:
+    double temp;
+    double rain;
+    double wind;
+    int weatherCode;
+
+    APIClient();
+
+    bool getData(double lat,double lon);
+    int getStatus();
+    void showData();
+};
+
+#endif
+
+
+================================================================================
+FILE: include/priorityqueue.h
+================================================================================
+#ifndef PRIORITY_QUEUE_H
+#define PRIORITY_QUEUE_H
+#include <vector>
+using namespace std;
+struct PQNode
+{
+int node;
+double cost;
+};
+class PriorityQueue
+{
+private:
+vector<PQNode> q;
+public:
+void push(int node,double cost);
+PQNode pop();
+bool empty();
+};
+#endif
+
+================================================================================
+FILE: src/DataLoader.cpp
+================================================================================
+#include "Graph.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <regex>
+#include <stdexcept>
+
+using namespace std;
+
+Graph loadGraphFromJSON(const string& filename)
+{
+    ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        throw runtime_error("Cannot open JSON file: " + filename);
+    }
+
+    string content;
+    string line;
+
+    while (getline(file, line))
+    {
+        content += line + "\n";
+    }
+
+    // Read total number of locations
+    regex locationsPattern(
+        R"("totalLocations"\s*:\s*(\d+))"
+    );
+
+    smatch match;
+
+    if (!regex_search(content, match, locationsPattern))
+    {
+        throw runtime_error("totalLocations not found");
+    }
+
+    int totalLocations = stoi(match[1].str());
+
+    if (totalLocations <= 0)
+    {
+        throw runtime_error("Invalid number of locations");
+    }
+
+    Graph graph(totalLocations);
+
+    // Find the roads array
+    size_t roadsStart = content.find("\"roads\"");
+
+    if (roadsStart == string::npos)
+    {
+        throw runtime_error("Roads array not found");
+    }
+
+    size_t arrayStart = content.find('[', roadsStart);
+    size_t arrayEnd = content.find(']', arrayStart);
+
+    if (arrayStart == string::npos ||
+        arrayEnd == string::npos)
+    {
+        throw runtime_error("Invalid roads array");
+    }
+
+    string roadsData =
+        content.substr(arrayStart + 1,
+                       arrayEnd - arrayStart - 1);
+
+    // Read each road object
+    regex roadPattern(R"(\{([^{}]*)\})");
+
+    auto begin = sregex_iterator(
+        roadsData.begin(), roadsData.end(), roadPattern
+    );
+
+    auto end = sregex_iterator();
+
+    regex srcPattern(R"("src"\s*:\s*(\d+))");
+    regex destPattern(R"("dest"\s*:\s*(\d+))");
+    regex timePattern(R"("time"\s*:\s*([0-9]+(?:\.[0-9]+)?))");
+    regex hazardPattern(R"("hazard"\s*:\s*([0-9]+(?:\.[0-9]+)?))");
+    regex blockedPattern(R"("blocked"\s*:\s*(true|false))");
+
+    for (auto it = begin; it != end; ++it)
+    {
+        string roadData = (*it)[1].str();
+
+        smatch srcMatch, destMatch, timeMatch;
+        smatch hazardMatch, blockedMatch;
+
+        if (!regex_search(roadData, srcMatch, srcPattern) ||
+            !regex_search(roadData, destMatch, destPattern) ||
+            !regex_search(roadData, timeMatch, timePattern))
+        {
+            throw runtime_error("Invalid road data");
+        }
+
+        int src = stoi(srcMatch[1].str());
+        int dest = stoi(destMatch[1].str());
+
+        double time = stod(timeMatch[1].str());
+        double hazard = 1.0;
+        bool blocked = false;
+
+        if (regex_search(roadData, hazardMatch, hazardPattern))
+            hazard = stod(hazardMatch[1].str());
+
+        if (regex_search(roadData, blockedMatch, blockedPattern))
+            blocked = (blockedMatch[1].str() == "true");
+
+        if (src < 0 || src >= totalLocations ||
+            dest < 0 || dest >= totalLocations ||
+            time < 0 || hazard < 0)
+        {
+            throw runtime_error("Invalid road values");
+        }
+
+        Road road(src, dest, time, hazard);
+        road.setBlocked(blocked);
+
+        graph.addRoad(road);
+    }
+
+    return graph;
+}
+
+
+
+================================================================================
+FILE: src/DatabaseManager.cpp
+================================================================================
+#include "DatabaseManager.h"
+
+#include <chrono>
+#include <cstdint>
+#include <iostream>
+
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/builder/basic/kvp.hpp>
+#include <bsoncxx/types.hpp>
+
+#include <mongocxx/exception/exception.hpp>
+#include <mongocxx/options/replace.hpp>
+
+using bsoncxx::builder::basic::make_document;
+using bsoncxx::builder::basic::kvp;
+
+mongocxx::instance DatabaseManager::instance{};
+
+DatabaseManager::DatabaseManager(
+    const std::string& connectionString,
+    const std::string& databaseName
+)
+    : client(mongocxx::uri{connectionString}),
+      database(client[databaseName]) {
+}
+
+bool DatabaseManager::ping() {
+    try {
+        database.run_command(make_document(kvp("ping", 1)));
+        std::cout << "MongoDB Atlas connected successfully.\n";
+        return true;
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "MongoDB ping failed: " << e.what() << '\n';
+        return false;
+    }
+}
+
+bool DatabaseManager::saveLocation(
+    int id,
+    const std::string& name,
+    double latitude,
+    double longitude
+) {
+    try {
+        auto collection = database["locations"];
+
+        auto filter = make_document(kvp("id", id));
+        auto replacement = make_document(
+            kvp("id", id),
+            kvp("name", name),
+            kvp("latitude", latitude),
+            kvp("longitude", longitude)
+        );
+
+        mongocxx::options::replace options;
+        options.upsert(true);
+
+        collection.replace_one(filter.view(), replacement.view(), options);
+        return true;
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Saving location failed: " << e.what() << '\n';
+        return false;
+    }
+}
+
+bool DatabaseManager::saveRoad(
+    int roadId,
+    int fromLocation,
+    int toLocation,
+    double distance,
+    int status,
+    double cost
+) {
+    try {
+        auto collection = database["roads"];
+
+        auto filter = make_document(kvp("roadId", roadId));
+        auto replacement = make_document(
+            kvp("roadId", roadId),
+            kvp("fromLocation", fromLocation),
+            kvp("toLocation", toLocation),
+            kvp("distance", distance),
+            kvp("status", status),
+            kvp("cost", cost),
+            kvp("blocked", status == 3)
+        );
+
+        mongocxx::options::replace options;
+        options.upsert(true);
+
+        collection.replace_one(filter.view(), replacement.view(), options);
+        return true;
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Saving road failed: " << e.what() << '\n';
+        return false;
+    }
+}
+
+bool DatabaseManager::saveEvacuationLog(
+    const std::string& eventType,
+    const std::string& details
+) {
+    try {
+        auto collection = database["evacuation_logs"];
+
+        const auto now = std::chrono::system_clock::now();
+        const auto timestamp = std::chrono::duration_cast<
+            std::chrono::milliseconds
+        >(now.time_since_epoch()).count();
+
+        auto document = make_document(
+            kvp("eventType", eventType),
+            kvp("details", details),
+            kvp(
+                "timestamp",
+                bsoncxx::types::b_int64{
+                    static_cast<std::int64_t>(timestamp)
+                }
+            )
+        );
+
+        collection.insert_one(document.view());
+        return true;
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Saving evacuation log failed: " << e.what() << '\n';
+        return false;
+    }
+}
+
+std::vector<bsoncxx::document::value>
+DatabaseManager::getAllLocations() {
+    std::vector<bsoncxx::document::value> results;
+
+    try {
+        auto collection = database["locations"];
+
+        for (const auto& document : collection.find({})) {
+            results.emplace_back(bsoncxx::document::value{document});
+        }
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Reading locations failed: " << e.what() << '\n';
+    }
+
+    return results;
+}
+
+std::vector<bsoncxx::document::value>
+DatabaseManager::getAllRoads() {
+    std::vector<bsoncxx::document::value> results;
+
+    try {
+        auto collection = database["roads"];
+
+        for (const auto& document : collection.find({})) {
+            results.emplace_back(bsoncxx::document::value{document});
+        }
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Reading roads failed: " << e.what() << '\n';
+    }
+
+    return results;
+}
+
+bool DatabaseManager::deleteLocation(int id) {
+    try {
+        auto collection = database["locations"];
+        auto filter = make_document(kvp("id", id));
+
+        auto result = collection.delete_one(filter.view());
+        return result && result->deleted_count() > 0;
+    } catch (const mongocxx::exception& e) {
+        std::cerr << "Deleting location failed: " << e.what() << '\n';
+        return false;
+    }
+}
+
+================================================================================
+FILE: src/Disastermanagement.cpp
+================================================================================
+#include "DisasterManager.h"
+
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+void DisasterManager::updateRoad(
+    Graph &g, int u, int v, int status, DatabaseManager &db)
+{
+    if (status < 1 || status > 4) {
+        cout << "Invalid road status." << endl;
+        return;
+    }
+
+    if (!g.updateRoadStatus(u, v, status)) {
+        cout << "Road not found or could not be updated." << endl;
+        return;
+    }
+
+    double time = 0.0;
+    double cost = 0.0;
+    bool blocked = false;
+    int actualStatus = status;
+
+    if (!g.getRoadDetails(u, v, time, blocked, cost, actualStatus)) {
+        cout << "Road updated in graph, but details could not be read."
+             << endl;
+        return;
+    }
+
+    int roadId = min(u, v) * 100000 + max(u, v);
+
+    if (db.saveRoad(roadId, u, v, time, actualStatus, cost)) {
+        cout << "Road updated and saved to MongoDB." << endl;
+    } else {
+        cout << "Road updated in graph, but MongoDB save failed." << endl;
+    }
+}
+
+void DisasterManager::showRoad(Graph &g)
+{
+    cout << "Use Graph::showGraph() to display the road network."
+         << endl;
+    g.showGraph();
+}
+
+
+========== FILE: src/Graph.cpp ==========
+#include "Graph.h"
+
+Graph::Graph(int totalLocations) 
+{
+    adjList.resize(totalLocations);
+}
+void Graph::addRoad(Road road) 
+{
+    int source = road.getSrc();
+
+    if (source >= 0 && source < adjList.size()) {
+        adjList[source].push_back(road);
+    }
+}
+bool Graph::updateRoadStatus(int u, int v, int status)
+{
+    if (u < 0 || u >= static_cast<int>(adjList.size()) ||
+        v < 0 || v >= static_cast<int>(adjList.size()))
+        return false;
+
+    bool found = false;
+
+    auto update = [&](int src, int dest) {
+        for (auto &road : adjList[src]) {
+            if (road.getDest() == dest) {
+                if (status == 1) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(1.0);
+                } else if (status == 2) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(2.0);
+                } else if (status == 3) {
+                    road.setBlocked(true);
+                } else if (status == 4) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(3.0);
+                } else {
+                    return;
+                }
+                found = true;
+            }
+        }
+    };
+
+    if (status < 1 || status > 4)
+        return false;
+
+    update(u, v);
+    update(v, u);
+
+    return found;
+}
+
+bool Graph::getRoadDetails(
+    int u, int v, double& time, bool& blocked, double& cost, int& status)
+{
+    if (u < 0 || u >= static_cast<int>(adjList.size()))
+        return false;
+
+    for (auto &road : adjList[u]) {
+        if (road.getDest() == v) {
+            time = road.getTime();
+            blocked = road.getBlockedStatus();
+            cost = road.getCost();
+
+            if (blocked)
+                status = 3;
+            else if (time != 0.0 && cost >= time * 2.5)
+                status = 4;
+            else if (time != 0.0 && cost >= time * 1.5)
+                status = 2;
+            else
+                status = 1;
+
+            return true;
+        }
+    }
+    if (v >= 0 && v < static_cast<int>(adjList.size())) {
+    for (auto &road : adjList[v]) {
+        if (road.getDest() == u) {
+            time = road.getTime();
+            blocked = road.getBlockedStatus();
+            cost = road.getCost();
+
+            if (blocked)
+                status = 3;
+            else if (time != 0.0 && cost >= time * 2.5)
+                status = 4;
+            else if (time != 0.0 && cost >= time * 1.5)
+                status = 2;
+            else
+                status = 1;
+
+            return true;
+        }
+    }
+}
+    return false;
+}
+vector<vector<Road>>& Graph::getAdjList()
+{
+    return adjList;
+}
+
+void Graph::showGraph() 
+{
+    cout << "\n     ADJACENCY LIST      " << endl;
+
+    for (int i = 0; i < adjList.size(); i++) 
+    {
+        cout << "Location " << i << " : ";
+        if (adjList[i].empty()) 
+        {
+            cout << "   No outgoing roads   ";
+        }
+        else 
+        {
+            for (int j = 0; j < adjList[i].size(); j++) 
+            {
+                cout << adjList[i][j].getDest();
+                if (j != adjList[i].size() - 1) {
+                    cout << " -> ";
+                }
+            }
+        }
+        cout << endl;
+    }
+}
+
+
+
+================================================================================
+FILE: src/Graph.cpp
+================================================================================
+#include "Graph.h"
+
+Graph::Graph(int totalLocations) 
+{
+    adjList.resize(totalLocations);
+}
+void Graph::addRoad(Road road) 
+{
+    int source = road.getSrc();
+
+    if (source >= 0 && source < adjList.size()) {
+        adjList[source].push_back(road);
+    }
+}
+bool Graph::updateRoadStatus(int u, int v, int status)
+{
+    if (u < 0 || u >= static_cast<int>(adjList.size()) ||
+        v < 0 || v >= static_cast<int>(adjList.size()))
+        return false;
+
+    bool found = false;
+
+    auto update = [&](int src, int dest) {
+        for (auto &road : adjList[src]) {
+            if (road.getDest() == dest) {
+                if (status == 1) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(1.0);
+                } else if (status == 2) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(2.0);
+                } else if (status == 3) {
+                    road.setBlocked(true);
+                } else if (status == 4) {
+                    road.setBlocked(false);
+                    road.setHazardLevel(3.0);
+                } else {
+                    return;
+                }
+                found = true;
+            }
+        }
+    };
+
+    if (status < 1 || status > 4)
+        return false;
+
+    update(u, v);
+    update(v, u);
+
+    return found;
+}
+
+bool Graph::getRoadDetails(
+    int u, int v, double& time, bool& blocked, double& cost, int& status)
+{
+    if (u < 0 || u >= static_cast<int>(adjList.size()))
+        return false;
+
+    for (auto &road : adjList[u]) {
+        if (road.getDest() == v) {
+            time = road.getTime();
+            blocked = road.getBlockedStatus();
+            cost = road.getCost();
+
+            if (blocked)
+                status = 3;
+            else if (time != 0.0 && cost >= time * 2.5)
+                status = 4;
+            else if (time != 0.0 && cost >= time * 1.5)
+                status = 2;
+            else
+                status = 1;
+
+            return true;
+        }
+    }
+    if (v >= 0 && v < static_cast<int>(adjList.size())) {
+    for (auto &road : adjList[v]) {
+        if (road.getDest() == u) {
+            time = road.getTime();
+            blocked = road.getBlockedStatus();
+            cost = road.getCost();
+
+            if (blocked)
+                status = 3;
+            else if (time != 0.0 && cost >= time * 2.5)
+                status = 4;
+            else if (time != 0.0 && cost >= time * 1.5)
+                status = 2;
+            else
+                status = 1;
+
+            return true;
+        }
+    }
+}
+    return false;
+}
+void Graph::showGraph() 
+{
+    cout << "\n     ADJACENCY LIST      " << endl;
+
+    for (int i = 0; i < adjList.size(); i++) 
+    {
+        cout << "Location " << i << " : ";
+        if (adjList[i].empty()) 
+        {
+            cout << "   No outgoing roads   ";
+        }
+        else 
+        {
+            for (int j = 0; j < adjList[i].size(); j++) 
+            {
+                cout << adjList[i][j].getDest();
+                if (j != adjList[i].size() - 1) {
+                    cout << " -> ";
+                }
+            }
+        }
+        cout << endl;
+    }
+}
+
+================================================================================
+FILE: src/Location.cpp
+================================================================================
+#include "Location.h"
+
+Location::Location() {
+    locationId = -1;
+    locationName = "";
+    isSafeZone = false;
+}
+
+Location::Location(int id, string name, bool safe) {
+    locationId = id;
+    locationName = name;
+    isSafeZone = safe;
+}
+
+int Location::getId() {
+    return locationId;
+}
+
+string Location::getName() {
+    return locationName;
+}
+
+bool Location::checkSafeZone() {
+    return isSafeZone;
+}
+
+void Location::setSafeZone(bool status) {
+    isSafeZone = status;
+}
+
+void Location::printInfo() {
+    cout << "ID: " << locationId
+         << " | Name: " << locationName
+         << " | Safe Zone: " << (isSafeZone ? "YES" : "NO")
+         << endl;
+}
+
+
+========== FILE: src/Road.cpp ==========
+#include "Road.h"
+
+Road::Road() 
+{
+    u = -1;
+    v = -1;
+    travelTime = 0.0;
+    isBlocked = false;
+    hazardLevel = 1.0;
+}
+Road::Road(int src, int dest, double time, double hazard)
+ {
+    u = src;
+    v = dest;
+    travelTime = time;
+    isBlocked = false;
+    hazardLevel = hazard;
+}
+int Road::getSrc() 
+{
+    return u;
+}
+int Road::getDest() 
+{
+    return v;
+}
+
+double Road::getTime() 
+{
+    return travelTime;
+}
+
+bool Road::getBlockedStatus() 
+{
+    return isBlocked;
+}
+
+void Road::setBlocked(bool status) 
+{
+    isBlocked = status;
+}
+
+void Road::setHazardLevel(double hazard) 
+{
+    hazardLevel = hazard;
+}
+
+
+double Road::getCost()
+ {
+    if (isBlocked)
+     {
+        return 999999.0;
+    }
+    return travelTime * hazardLevel;
+}
+
+void Road::printRoad() 
+{
+    cout << "Edge (" << u << " -> " << v << ")"
+         << " | Time: " << travelTime << " mins"
+         << " | Blocked: " << (isBlocked ? "True" : "False")
+         << " | Dynamic Weight: " << getCost()
+         << endl;
+}
+
+
+================================================================================
+FILE: src/Road.cpp
+================================================================================
+#include "Road.h"
+
+Road::Road() 
+{
+    u = -1;
+    v = -1;
+    travelTime = 0.0;
+    isBlocked = false;
+    hazardLevel = 1.0;
+}
+Road::Road(int src, int dest, double time, double hazard)
+ {
+    u = src;
+    v = dest;
+    travelTime = time;
+    isBlocked = false;
+    hazardLevel = hazard;
+}
+int Road::getSrc() 
+{
+    return u;
+}
+int Road::getDest() 
+{
+    return v;
+}
+
+double Road::getTime() 
+{
+    return travelTime;
+}
+
+bool Road::getBlockedStatus() 
+{
+    return isBlocked;
+}
+
+void Road::setBlocked(bool status) 
+{
+    isBlocked = status;
+}
+
+void Road::setHazardLevel(double hazard) 
+{
+    hazardLevel = hazard;
+}
+
+
+double Road::getCost()
+ {
+    if (isBlocked)
+     {
+        return 999999.0;
+    }
+    return travelTime * hazardLevel;
+}
+
+void Road::printRoad() 
+{
+    cout << "Edge (" << u << " -> " << v << ")"
+         << " | Time: " << travelTime << " mins"
+         << " | Blocked: " << (isBlocked ? "True" : "False")
+         << " | Dynamic Weight: " << getCost()
+         << endl;
+}
+
+
+================================================================================
+FILE: src/RouteOptimizer.cpp
+================================================================================
+#include "RouteOptimizer.h"
+#include "priorityqueue.h"
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <vector>
+
+using namespace std;
+
+vector<int> RouteOptimizer::findRoute(Graph &g, int src, int des, double &totalCost)
+{
+    vector<vector<Road>>& adj = g.getAdjList();
+    const int n = static_cast<int>(adj.size());
+
+    totalCost = -1;
+    if (src < 0 || des < 0 || src >= n || des >= n)
+        return {};
+
+    vector<double> dist(n, numeric_limits<double>::infinity());
+    vector<int> parent(n, -1);
+    PriorityQueue pq;
+
+    dist[src] = 0.0;
+    pq.push(src, 0.0);
+
+    while (!pq.empty()) {
+        PQNode cur = pq.pop();
+        int u = cur.node;
+
+        if (u < 0 || u >= n)
+            continue;
+        if (cur.cost != dist[u])
+            continue;
+        if (u == des)
+            break;
+
+        for (auto &road : adj[u]) {
+            if (road.getBlockedStatus())
+                continue;
+
+            int v = road.getDest();
+            if (v < 0 || v >= n)
+                continue;
+
+            double edgeCost = road.getCost();
+            if (edgeCost < 0)
+                continue;
+
+            if (dist[u] + edgeCost < dist[v]) {
+                dist[v] = dist[u] + edgeCost;
+                parent[v] = u;
+                pq.push(v, dist[v]);
+            }
+        }
+    }
+
+    if (!std::isfinite(dist[des]))
+        return {};
+
+    vector<int> path;
+    for (int cur = des; cur != -1; cur = parent[cur]) {
+        path.push_back(cur);
+        if (cur == src)
+            break;
+    }
+
+    if (path.empty() || path.back() != src)
+        return {};
+
+    reverse(path.begin(), path.end());
+    totalCost = dist[des];
+    return path;
+}
+
+================================================================================
+FILE: src/apiclient.cpp
+================================================================================
+#include "apiclient.h"
+#include <curl/curl.h>
+#include <cstdlib>
+
+using namespace std;
+
+APIClient::APIClient()
+{
+    temp=0;
+    rain=0;
+    wind=0;
+    weatherCode=0;
+}
+
+size_t writeData(void *ptr,size_t size,size_t nmemb,void *data)
+{
+    string *str=(string*)data;
+    str->append((char*)ptr,size*nmemb);
+    return size*nmemb;
+}
+bool APIClient::getData(double lat,double lon)
+{
+    CURL *curl;
+    CURLcode res;
+    string data;
+    curl=curl_easy_init();
+    if(curl==NULL)
+    {
+        cout<<"Curl initialization failed"<<endl;
+        return false;
+    }
+    string url=
+    "https://api.open-meteo.com/v1/forecast?latitude="+
+    to_string(lat)+
+    "&longitude="+
+    to_string(lon)+
+    "&current=temperature_2m,precipitation,wind_speed_10m,weather_code";
+    curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,writeData);
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&data);
+    curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
+    curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
+    res=curl_easy_perform(curl);
+    if(res!=CURLE_OK)
+    {
+        cout<<"API request failed: "
+            <<curl_easy_strerror(res)<<endl;
+
+        curl_easy_cleanup(curl);
+        return false;
+    }
+    curl_easy_cleanup(curl);
+    size_t p;
+    p=data.find("\"temperature_2m\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        temp=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"precipitation\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        rain=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"wind_speed_10m\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        wind=atof(data.substr(p+1).c_str());
+    }
+    p=data.find("\"weather_code\":");
+    if(p!=string::npos)
+    {
+        p=data.find(":",p);
+        weatherCode=atoi(data.substr(p+1).c_str());
+   }
+    return true;
+}
+int APIClient::getStatus()
+{
+    if(rain>=10 || wind>=60)
+    return 3;
+    if(rain>=5 || wind>=40)
+        return 4;
+    if(rain>=2 || wind>=25)
+        return 2;
+
+    return 1;
+}
+void APIClient::showData()
+{
+    cout<<"Temperature: "<<temp<<" C"<<endl;
+    cout<<"Rainfall: "<<rain<<" mm"<<endl;
+    cout<<"Wind Speed: "<<wind<<" km/h"<<endl;
+    cout<<"Weather Code: "<<weatherCode<<endl;
+    cout<<"Current Status: ";
+    int st=getStatus();
+    if(st==1)
+        cout<<"Safe"<<endl;
+    else if(st==2)
+        cout<<"Risky"<<endl;
+    else if(st==3)
+        cout<<"Blocked"<<endl;
+    else if(st==4)
+        cout<<"Congested"<<endl;
+}
+
+================================================================================
+FILE: src/menu.cpp
+================================================================================
+#include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <vector>
+
+#include "DatabaseManager.h"
+#include "DisasterManager.h"
+#include "Graph.h"
+#include "RouteOptimizer.h"
+#include "Road.h"
+
+using namespace std;
+
+static void displayMenu()
+{
+    cout << "\n=== ADAPTIVE EMERGENCY EVACUATION SYSTEM ===\n"
+         << "1. Display road network\n"
+         << "2. Find evacuation route\n"
+         << "3. Update road condition (and save to MongoDB)\n"
+         << "4. Test MongoDB connection\n"
+         << "5. Exit\n"
+         << "Enter choice: ";
+}
+
+static void clearInput()
+{
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+int main()
+{
+    // Small demonstration network; replace with DataLoader when JSON schema is finalized.
+    Graph graph(6);
+    graph.addRoad(Road(0, 1, 12.5));
+    graph.addRoad(Road(0, 2, 8.0));
+    graph.addRoad(Road(1, 3, 15.0));
+    graph.addRoad(Road(2, 3, 6.5));
+    graph.addRoad(Road(2, 4, 22.0));
+    graph.addRoad(Road(3, 4, 10.0));
+    graph.addRoad(Road(3, 5, 18.0));
+
+    RouteOptimizer optimizer;
+    DisasterManager disasterManager;
+
+    const char* uriEnv = std::getenv("MONGODB_URI");
+    const char* dbEnv = std::getenv("MONGODB_DATABASE");
+    bool dbConfigured = uriEnv && *uriEnv && dbEnv && *dbEnv;
+
+    // Create DB manager only when credentials are configured.
+    // mongocxx::instance is static inside DatabaseManager.
+    int choice = 0;
+    do {
+        displayMenu();
+        if (!(cin >> choice)) {
+            clearInput();
+            cout << "Please enter a number from 1 to 5.\n";
+            continue;
+        }
+
+        switch (choice) {
+        case 1:
+            graph.showGraph();
+            break;
+        case 2: {
+            int src, dest;
+            cout << "Enter source and destination location IDs (0-5): ";
+            if (!(cin >> src >> dest)) {
+                clearInput();
+                cout << "Invalid input.\n";
+                break;
+            }
+            double totalCost = -1;
+            vector<int> path = optimizer.findRoute(graph, src, dest, totalCost);
+            if (path.empty()) {
+                cout << "No route found for those locations.\n";
+            } else {
+                cout << "Best route: ";
+                for (size_t i = 0; i < path.size(); ++i) {
+                    if (i) cout << " -> ";
+                    cout << path[i];
+                }
+                cout << "\nTotal cost: " << totalCost << '\n';
+            }
+            break;
+        }
+        case 3: {
+            if (!dbConfigured) {
+                cout << "MongoDB is not configured. Set MONGODB_URI and "
+                        "MONGODB_DATABASE in the environment first.\n";
+                break;
+            }
+            int u, v, status;
+            cout << "Enter road endpoints (u v) and status "
+                    "(1=Safe, 2=Risky, 3=Blocked, 4=Congested): ";
+            if (!(cin >> u >> v >> status)) {
+                clearInput();
+                cout << "Invalid input.\n";
+                break;
+            }
+            try {
+                DatabaseManager db(uriEnv, dbEnv);
+                if (!db.ping()) {
+                    cout << "MongoDB connection failed; road not saved.\n";
+                    break;
+                }
+                disasterManager.updateRoad(graph, u, v, status, db);
+            } catch (const std::exception& e) {
+                cout << "MongoDB error: " << e.what() << '\n';
+            }
+            break;
+        }
+        case 4: {
+            if (!dbConfigured) {
+                cout << "Set MONGODB_URI and MONGODB_DATABASE first.\n";
+                break;
+            }
+            try {
+                DatabaseManager db(uriEnv, dbEnv);
+                db.ping();
+            } catch (const std::exception& e) {
+                cout << "MongoDB error: " << e.what() << '\n';
+            }
+            break;
+        }
+        case 5:
+            cout << "Thank you for using the system!\n";
+            break;
+        default:
+            cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 5);
+
+    return 0;
+}
