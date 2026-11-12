@@ -14,24 +14,45 @@ export default function DashboardPage() {
   const [activePage, setActivePage] = useState<PageId>('dashboard')
   const [startId, setStartId] = useState('')
   const [destinationId, setDestinationId] = useState('')
+  const [startLocation, setStartLocation] = useState<Location | null>(null)
+  const [destinationLocation, setDestinationLocation] = useState<Location | null>(null)
   const [route, setRoute] = useState<RouteResult | null>(null)
   const [routeLoading, setRouteLoading] = useState(false)
   const [routeError, setRouteError] = useState('')
   const [roads, setRoads] = useState<Road[] | null>(null)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [alerts, setAlerts] = useState<Alert[] | null>(null)
-  const [loadingData, setLoadingData] = useState({ roads: true, weather: true, alerts: true })
+  const [loadingData, setLoadingData] = useState({
+    roads: true,
+    weather: true,
+    alerts: true,
+  })
   const [query, setQuery] = useState('')
   const [focusedLocation, setFocusedLocation] = useState<Location>()
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [locationError, setLocationError] = useState('')
-  const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem('aero-reduced-motion') === 'true')
-  const [compactMode, setCompactMode] = useState(() => localStorage.getItem('aero-compact-mode') === 'true')
+  const [reducedMotion, setReducedMotion] = useState(
+    () => localStorage.getItem('aero-reduced-motion') === 'true',
+  )
+  const [compactMode, setCompactMode] = useState(
+    () => localStorage.getItem('aero-compact-mode') === 'true',
+  )
 
   useEffect(() => {
-    api.getRoads().then(setRoads).catch(() => setRoads(null)).finally(() => setLoadingData((s) => ({ ...s, roads: false })))
-    api.getWeather().then(setWeather).catch(() => setWeather(null)).finally(() => setLoadingData((s) => ({ ...s, weather: false })))
-    api.getAlerts().then(setAlerts).catch(() => setAlerts(null)).finally(() => setLoadingData((s) => ({ ...s, alerts: false })))
+    api.getRoads()
+      .then(setRoads)
+      .catch(() => setRoads(null))
+      .finally(() => setLoadingData((s) => ({ ...s, roads: false })))
+
+    api.getWeather()
+      .then(setWeather)
+      .catch(() => setWeather(null))
+      .finally(() => setLoadingData((s) => ({ ...s, weather: false })))
+
+    api.getAlerts()
+      .then(setAlerts)
+      .catch(() => setAlerts(null))
+      .finally(() => setLoadingData((s) => ({ ...s, alerts: false })))
   }, [])
 
   useEffect(() => {
@@ -44,20 +65,69 @@ export default function DashboardPage() {
     document.body.classList.toggle('compact-mode', compactMode)
   }, [compactMode])
 
-  const searchMatches = useMemo(() => query.length > 1
-    ? LOCATIONS.filter((location) => location.name.toLowerCase().includes(query.toLowerCase()))
-    : [], [query])
+  const searchMatches = useMemo(
+    () =>
+      query.length > 1
+        ? LOCATIONS.filter((location) =>
+            location.name.toLowerCase().includes(query.toLowerCase()),
+          )
+        : [],
+    [query],
+  )
 
   function selectMapLocation(location: Location) {
     setFocusedLocation(location)
     setQuery(location.name)
-    if (!startId) setStartId(location.id)
-    else if (location.id !== startId) setDestinationId(location.id)
+
+    if (!startId) {
+      setStartId(location.id)
+      setStartLocation(location)
+    } else if (location.id !== startId) {
+      setDestinationId(location.id)
+      setDestinationLocation(location)
+    }
+  }
+
+  function changeStart(id: string) {
+    setStartId(id)
+    setStartLocation(LOCATIONS.find((location) => location.id === id) ?? null)
+    setRoute(null)
+    setRouteError('')
+  }
+
+  function changeDestination(id: string) {
+    setDestinationId(id)
+    setDestinationLocation(
+      LOCATIONS.find((location) => location.id === id) ?? null,
+    )
+    setRoute(null)
+    setRouteError('')
+  }
+
+  function selectStartLocation(location: Location) {
+    setStartLocation(location)
+    setStartId(location.id)
+    setFocusedLocation(location)
+    setRoute(null)
+    setRouteError('')
+  }
+
+  function selectDestinationLocation(location: Location) {
+    setDestinationLocation(location)
+    setDestinationId(location.id)
+    setFocusedLocation(location)
+    setRoute(null)
+    setRouteError('')
   }
 
   function findCurrentLocation() {
     setLocationError('')
-    if (!navigator.geolocation) return setLocationError('Geolocation is unavailable in this browser.')
+
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is unavailable in this browser.')
+      return
+    }
+
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => setUserLocation([coords.latitude, coords.longitude]),
       () => setLocationError('Location permission was denied or unavailable.'),
@@ -67,45 +137,145 @@ export default function DashboardPage() {
 
   async function findRoute() {
     setRouteError('')
-    if (!startId || !destinationId) return setRouteError('Select both a starting point and destination.')
-    if (startId === destinationId) return setRouteError('Choose two different locations.')
+    setRoute(null)
+
+    if (!startId || !destinationId) {
+      setRouteError('Select both a starting point and destination.')
+      return
+    }
+
+    if (startId === destinationId) {
+      setRouteError('Choose two different locations.')
+      return
+    }
+
+  
+    
+
     setRouteLoading(true)
+
     try {
-      setRoute(await api.getRoute(startId, destinationId))
-    } catch {
-      setRoute(null)
-      setRouteError('Route calculation unavailable. Check the backend connection and try again.')
-    } finally {
+      setRoute(
+  await api.getRoute({
+    startId,
+    destinationId,
+    ...(startLocation
+      ? { startCoordinates: startLocation.coordinates }
+      : {}),
+    ...(destinationLocation
+      ? { destinationCoordinates: destinationLocation.coordinates }
+      : {}),
+  }),
+)
+    } catch (error) {
+  console.error('Route calculation error:', error)
+
+  setRouteError(
+    error instanceof Error
+      ? error.message
+      : 'Unknown route calculation error'
+  )
+} finally {
       setRouteLoading(false)
     }
   }
 
+  function clearRoute() {
+    setStartId('')
+    setDestinationId('')
+    setStartLocation(null)
+    setDestinationLocation(null)
+    setRoute(null)
+    setRouteError('')
+    setFocusedLocation(undefined)
+  }
+
   const mapCard = (large = false) => (
     <section className={`map-card ${large ? 'map-card-large' : ''}`}>
-      <EmergencyMap route={route} focusedLocation={focusedLocation} userLocation={userLocation} onSelect={selectMapLocation} reducedMotion={reducedMotion} />
+      <EmergencyMap
+        route={route}
+        focusedLocation={focusedLocation}
+        userLocation={userLocation}
+        onSelect={selectMapLocation}
+        reducedMotion={reducedMotion}
+      />
     </section>
   )
 
   const planner = (
-    <RoutePlanner startId={startId} destinationId={destinationId} route={route} loading={routeLoading} error={routeError} onStartChange={setStartId} onDestinationChange={setDestinationId} onFind={findRoute} onClear={() => { setStartId(''); setDestinationId(''); setRoute(null); setRouteError('') }} />
+    <RoutePlanner
+      startId={startId}
+      destinationId={destinationId}
+      route={route}
+      loading={routeLoading}
+      error={routeError}
+      onStartChange={changeStart}
+      onDestinationChange={changeDestination}
+      onStartLocationSelect={selectStartLocation}
+      onDestinationLocationSelect={selectDestinationLocation}
+      onFind={findRoute}
+      onClear={clearRoute}
+    />
   )
 
   function renderPage() {
     if (activePage === 'map') {
-      return <div className="single-view">{mapCard(true)}{locationError && <p className="location-error">{locationError}</p>}</div>
+      return (
+        <div className="single-view">
+          {mapCard(true)}
+          {locationError && <p className="location-error">{locationError}</p>}
+        </div>
+      )
     }
+
     if (activePage === 'route') {
-      return <div className="dashboard route-view"><div className="map-column">{mapCard(true)}{locationError && <p className="location-error">{locationError}</p>}</div><aside className="right-column">{planner}</aside></div>
+      return (
+        <div className="dashboard route-view">
+          <div className="map-column">
+            {mapCard(true)}
+            {locationError && <p className="location-error">{locationError}</p>}
+          </div>
+          <aside className="right-column">{planner}</aside>
+        </div>
+      )
     }
+
     if (activePage === 'roads') {
-      return <div className="detail-view"><RoadStatusPanel data={roads} loading={loadingData.roads} /></div>
+      return (
+        <div className="detail-view">
+          <RoadStatusPanel data={roads} loading={loadingData.roads} />
+        </div>
+      )
     }
+
     if (activePage === 'weather') {
-      return <div className="detail-view"><div className="info-grid"><WeatherPanel data={weather} loading={loadingData.weather} /><AlertPanel data={alerts} loading={loadingData.alerts} /></div></div>
+      return (
+        <div className="detail-view">
+          <div className="info-grid">
+            <WeatherPanel data={weather} loading={loadingData.weather} />
+            <AlertPanel data={alerts} loading={loadingData.alerts} />
+          </div>
+        </div>
+      )
     }
+
     if (activePage === 'settings') {
-      return <div className="detail-view"><SettingsPanel reducedMotion={reducedMotion} compactMode={compactMode} onReducedMotionChange={setReducedMotion} onCompactModeChange={setCompactMode} onReset={() => { setReducedMotion(false); setCompactMode(false) }} /></div>
+      return (
+        <div className="detail-view">
+          <SettingsPanel
+            reducedMotion={reducedMotion}
+            compactMode={compactMode}
+            onReducedMotionChange={setReducedMotion}
+            onCompactModeChange={setCompactMode}
+            onReset={() => {
+              setReducedMotion(false)
+              setCompactMode(false)
+            }}
+          />
+        </div>
+      )
     }
+
     return (
       <div className="dashboard">
         <div className="map-column">
@@ -116,6 +286,7 @@ export default function DashboardPage() {
             <AlertPanel data={alerts} loading={loadingData.alerts} />
           </div>
         </div>
+
         <aside className="right-column">
           {planner}
           <RoadStatusPanel data={roads} loading={loadingData.roads} />
@@ -126,18 +297,68 @@ export default function DashboardPage() {
 
   return (
     <div className="app-shell">
-      <Sidebar open={sidebarOpen} activePage={activePage} onNavigate={setActivePage} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        activePage={activePage}
+        onNavigate={setActivePage}
+        onClose={() => setSidebarOpen(false)}
+      />
+
       <main className="main-area">
         <header className="topbar">
-          <button className="icon-button menu-button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={21} /></button>
-          <div className="page-title"><span>{activePage === 'dashboard' ? 'Dehradun emergency operations' : activePage.replace('-', ' ')}</span><h1>Adaptive Emergency Evacuation Route Optimization</h1></div>
+          <button
+            className="icon-button menu-button"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu size={21} />
+          </button>
+
+          <div className="page-title">
+            <span>
+              {activePage === 'dashboard'
+                ? 'Dehradun emergency operations'
+                : activePage.replace('-', ' ')}
+            </span>
+            <h1>Adaptive Emergency Evacuation Route Optimization</h1>
+          </div>
+
           <div className="search-wrap">
             <Search size={18} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Dehradun landmarks..." aria-label="Search locations" />
-            {searchMatches.length > 0 && <div className="search-results">{searchMatches.map((location) => <button key={location.id} onClick={() => selectMapLocation(location)}><strong>{location.name}</strong><span>{location.address}</span></button>)}</div>}
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search Dehradun landmarks..."
+              aria-label="Search locations"
+            />
+
+            {searchMatches.length > 0 && (
+              <div className="search-results">
+                {searchMatches.map((location) => (
+                  <button
+                    key={location.id}
+                    onClick={() => selectMapLocation(location)}
+                  >
+                    <strong>{location.name}</strong>
+                    <span>{location.address}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <button className="location-button" onClick={findCurrentLocation}><LocateFixed size={17} /><span>Current location</span></button>
-          <div className="freshness"><Wifi size={15} /><div><strong>Map available</strong><span>Live map tiles</span></div></div>
+
+          <button className="location-button" onClick={findCurrentLocation}>
+            <LocateFixed size={17} />
+            <span>Current location</span>
+          </button>
+
+          <div className="freshness">
+            <Wifi size={15} />
+            <div>
+              <strong>Map available</strong>
+              <span>Live map tiles</span>
+            </div>
+          </div>
         </header>
 
         {renderPage()}

@@ -1,7 +1,9 @@
 #ifndef ROAD_H
 #define ROAD_H
-#include <iostream>
+
+#include <string>
 using namespace std;
+
 class Road {
 private:
     int u;
@@ -9,17 +11,25 @@ private:
     double travelTime;
     bool isBlocked;
     double hazardLevel;
+    string name;
+
 public:
     Road();
-    Road(int src, int dest, double time, double hazard = 1.0);
-    int getSrc();
-    int getDest();
-    double getTime();
-    bool getBlockedStatus();
+    Road(int src, int dest, double time,
+         double hazard = 1.0,
+         const string& roadName = "");
+
+    int getSrc() const;
+    int getDest() const;
+    double getTime() const;
+    bool getBlockedStatus() const;
     void setBlocked(bool status);
     void setHazardLevel(double hazard);
-    double getCost();
+    double getCost() const;
     void printRoad();
+
+    string getName() const;
+    void setName(const string& roadName);
 };
 
 #endif

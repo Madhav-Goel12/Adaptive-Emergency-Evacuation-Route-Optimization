@@ -1,0 +1,53 @@
+
+# ==============================
+# Node.js dependencies
+# ==============================
+node_modules/
+**/node_modules/
+
+# ==============================
+# C++ build files
+# ==============================
+build/
+**/build/
+
+# ==============================
+# Frontend build output
+# ==============================
+dist/
+**/dist/
+
+# ==============================
+# Vcpkg installed dependencies
+# ==============================
+vcpkg/
+**/vcpkg/
+
+# ==============================
+# Environment files and secrets
+# ==============================
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Allow example environment files
+!.env.example
+!**/.env.example
+
+# ==============================
+# ZIP files and backups
+# ==============================
+*.zip
+*.backup
+
+# ==============================
+# Editor and operating system files
+# ==============================
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Accidental root npm files
+/package.json
+/pnpm-lock.yaml

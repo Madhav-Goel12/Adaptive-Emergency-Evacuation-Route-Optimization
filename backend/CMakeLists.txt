@@ -8,7 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(mongocxx REQUIRED)
 find_package(bsoncxx REQUIRED)
 find_package(CURL REQUIRED)
-
+find_package(httplib CONFIG REQUIRED)
+find_package(tinyxml2 CONFIG REQUIRED)
 add_executable(evacuation_app
     src/menu.cpp
     src/Location.cpp
@@ -19,13 +20,19 @@ add_executable(evacuation_app
     src/DatabaseManager.cpp
     src/apiclient.cpp
     src/DataLoader.cpp
+    src/Alert.cpp
     algorithms/priorityqueue.cpp
     algorithms/pathreconstruction.cpp
+    src/HttpServer.cpp
+    src/OSMGraphLoader.cpp
 )
 
 target_include_directories(evacuation_app PRIVATE include algorithms)
+
 target_link_libraries(evacuation_app PRIVATE
-    mongo::mongocxx_shared
-    mongo::bsoncxx_shared
+    $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>
+    $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>
     CURL::libcurl
+    httplib::httplib
+    tinyxml2::tinyxml2
 )
