@@ -212,13 +212,3 @@ The backend port must be reachable from the browser serving the frontend. Use th
 - Add automated tests for OSM loading, route correctness, blocked roads, invalid coordinates, and unreachable destinations.
 - Improve deployment documentation and secure configuration management.
 
-## Contributing
-
-1. Create a branch for your change.
-2. Make the change and run relevant backend/frontend checks.
-3. Review `git diff` and ensure no secrets or generated files are included.
-4. Commit with a descriptive message and open a pull request.
-
-## Disclaimer
-
-This is an academic/prototype system. Route outputs are estimates based on available graph data and configured costs. During an actual emergency, follow official evacuation instructions and local authorities.
