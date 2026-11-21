@@ -1,8 +1,6 @@
-
 #include "OSMGraphLoader.h"
 
 #include <tinyxml2.h>
-
 #include <cstdint>
 #include <unordered_map>
 #include <unordered_set>
@@ -19,10 +17,10 @@ namespace
 {
     struct OSMNode
     {
-        int64_t osmId;
-        double lat;
-        double lon;
-        int graphId;
+        int64_t osmId = 0;
+        double lat = 0.0;
+        double lon = 0.0;
+        int graphId = -1;
     };
 
     struct OSMWay
@@ -35,7 +33,11 @@ namespace
 
         string name;
         string highwayType;
+        string surface;
+        string maxSpeed;
     };
+
+    constexpr double PI = 3.14159265358979323846;
 
     double haversineDistance(
         double lat1,
@@ -45,34 +47,28 @@ namespace
     )
     {
         const double earthRadius = 6371000.0;
-        const double pi = 3.14159265358979323846;
 
-        lat1 *= pi / 180.0;
-        lon1 *= pi / 180.0;
-        lat2 *= pi / 180.0;
-        lon2 *= pi / 180.0;
-
-        double dLat = lat2 - lat1;
-        double dLon = lon2 - lon1;
+        double dLat = (lat2 - lat1) * PI / 180.0;
+        double dLon = (lon2 - lon1) * PI / 180.0;
 
         double a =
             sin(dLat / 2.0) * sin(dLat / 2.0) +
-            cos(lat1) * cos(lat2) *
+            cos(lat1 * PI / 180.0) *
+            cos(lat2 * PI / 180.0) *
             sin(dLon / 2.0) * sin(dLon / 2.0);
 
+        // Protect sqrt() against tiny floating-point rounding errors.
         a = max(0.0, min(1.0, a));
 
-        double c = 2.0 * atan2(
-            sqrt(a),
-            sqrt(1.0 - a)
-        );
+        double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
 
         return earthRadius * c;
     }
 
     bool isAllowedHighway(const string& highway)
     {
-        static const unordered_set<string> allowed = {
+        static const unordered_set<string> allowed =
+        {
             "motorway",
             "motorway_link",
             "trunk",
@@ -91,6 +87,108 @@ namespace
 
         return allowed.count(highway) > 0;
     }
+
+    // Estimated normal speed for each OSM road class, in km/h.
+    double getHighwaySpeed(const string& highway)
+    {
+        if (highway == "motorway") return 80.0;
+        if (highway == "motorway_link") return 40.0;
+
+        if (highway == "trunk") return 60.0;
+        if (highway == "trunk_link") return 40.0;
+
+        if (highway == "primary") return 50.0;
+        if (highway == "primary_link") return 35.0;
+
+        if (highway == "secondary") return 40.0;
+        if (highway == "secondary_link") return 30.0;
+
+        if (highway == "tertiary") return 30.0;
+        if (highway == "tertiary_link") return 25.0;
+
+        if (highway == "unclassified") return 25.0;
+        if (highway == "residential") return 25.0;
+
+        if (highway == "living_street") return 15.0;
+        if (highway == "service") return 15.0;
+
+        return 20.0;
+    }
+
+    // Baseline risk multiplier based on the road class.
+    double getHighwayHazard(const string& highway)
+    {
+        if (
+            highway == "tertiary" ||
+            highway == "tertiary_link"
+        )
+            return 1.2;
+
+        if (
+            highway == "unclassified" ||
+            highway == "residential"
+        )
+            return 1.3;
+
+        if (
+            highway == "living_street" ||
+            highway == "service"
+        )
+            return 1.2;
+
+        return 1.0;
+    }
+
+    // Baseline risk multiplier based on the OSM surface tag.
+    double getSurfaceHazard(const string& surface)
+    {
+        if (surface == "unpaved" || surface == "gravel")
+            return 1.5;
+
+        if (
+            surface == "dirt" ||
+            surface == "ground" ||
+            surface == "mud"
+        )
+            return 1.8;
+
+        if (surface == "wood" || surface == "pebblestone")
+            return 1.4;
+
+        // Asphalt, paved, concrete and unknown surfaces use 1.0.
+        return 1.0;
+    }
+
+    // Use the lower of the estimated road speed and OSM maxspeed.
+    // OSM maxspeed values that cannot be parsed are ignored.
+    double getEffectiveSpeed(
+        const string& highway,
+        const string& maxSpeed
+    )
+    {
+        double speed = getHighwaySpeed(highway);
+
+        if (maxSpeed.empty())
+            return speed;
+
+        try
+        {
+            size_t parsedChars = 0;
+            double limit = stod(maxSpeed, &parsedChars);
+
+            if (maxSpeed.find("mph") != string::npos)
+                limit *= 1.60934;
+
+            if (limit > 0.0)
+                speed = min(speed, limit);
+        }
+        catch (...)
+        {
+            // Values such as "signals" or "walk" use the road-class estimate.
+        }
+
+        return speed > 0.0 ? speed : getHighwaySpeed(highway);
+    }
 }
 
 bool OSMGraphLoader::loadFromOSM(
@@ -100,13 +198,10 @@ bool OSMGraphLoader::loadFromOSM(
 {
     XMLDocument doc;
 
-    XMLError error = doc.LoadFile(filePath.c_str());
-
-    if (error != XML_SUCCESS)
+    if (doc.LoadFile(filePath.c_str()) != XML_SUCCESS)
     {
-        cerr << "OSM XML load failed: "
-             << doc.ErrorStr() << endl;
-
+        cerr << "Failed to load OSM file: "
+             << filePath << endl;
         return false;
     }
 
@@ -114,50 +209,36 @@ bool OSMGraphLoader::loadFromOSM(
 
     if (!root)
     {
-        cerr << "Invalid OSM file: missing <osm> root"
+        cerr << "Invalid OSM file: missing <osm> root element."
              << endl;
-
         return false;
     }
 
     unordered_map<int64_t, OSMNode> nodes;
     vector<OSMWay> ways;
 
-    // --------------------------------
-    // 1. Read OSM nodes
-    // --------------------------------
-
+    // Read all OSM nodes.
     for (
         XMLElement* node = root->FirstChildElement("node");
         node;
         node = node->NextSiblingElement("node")
     )
     {
-        int64_t id;
-        double lat;
-        double lon;
+        OSMNode n;
 
-        if (node->QueryInt64Attribute("id", &id) != XML_SUCCESS)
+        if (
+            node->QueryInt64Attribute("id", &n.osmId) != XML_SUCCESS ||
+            node->QueryDoubleAttribute("lat", &n.lat) != XML_SUCCESS ||
+            node->QueryDoubleAttribute("lon", &n.lon) != XML_SUCCESS
+        )
+        {
             continue;
+        }
 
-        if (node->QueryDoubleAttribute("lat", &lat) != XML_SUCCESS)
-            continue;
-
-        if (node->QueryDoubleAttribute("lon", &lon) != XML_SUCCESS)
-            continue;
-
-        nodes[id] = {
-            id,
-            lat,
-            lon,
-            -1
-        };
+        nodes[n.osmId] = n;
     }
 
-    // --------------------------------
-    // 2. Read OSM road ways and tags
-    // --------------------------------
-
+    // Read allowed OSM road ways and their relevant tags.
     for (
         XMLElement* way = root->FirstChildElement("way");
         way;
@@ -166,39 +247,24 @@ bool OSMGraphLoader::loadFromOSM(
     {
         OSMWay osmWay;
 
-        if (
-            way->QueryInt64Attribute(
-                "id",
-                &osmWay.osmId
-            ) != XML_SUCCESS
-        )
-        {
+        if (way->QueryInt64Attribute("id", &osmWay.osmId) != XML_SUCCESS)
             continue;
-        }
 
-        // Read node references
         for (
             XMLElement* nd = way->FirstChildElement("nd");
             nd;
             nd = nd->NextSiblingElement("nd")
         )
         {
-            int64_t ref;
+            int64_t ref = 0;
 
-            if (
-                nd->QueryInt64Attribute("ref", &ref)
-                == XML_SUCCESS
-            )
-            {
+            if (nd->QueryInt64Attribute("ref", &ref) == XML_SUCCESS)
                 osmWay.nodeIds.push_back(ref);
-            }
         }
 
-        string oneWayValue;
-        string junctionValue;
-        string accessValue;
+        bool allowed = false;
+        bool privateAccess = false;
 
-        // Read OSM tags
         for (
             XMLElement* tag = way->FirstChildElement("tag");
             tag;
@@ -215,43 +281,42 @@ bool OSMGraphLoader::loadFromOSM(
             string v = value;
 
             if (k == "highway")
+            {
                 osmWay.highwayType = v;
-
+                allowed = isAllowedHighway(v);
+            }
             else if (k == "name")
+            {
                 osmWay.name = v;
-
+            }
             else if (k == "oneway")
-                oneWayValue = v;
-
-            else if (k == "junction")
-                junctionValue = v;
-
+            {
+                if (v == "yes" || v == "1" || v == "true")
+                    osmWay.oneWay = true;
+                else if (v == "-1")
+                    osmWay.reverseOneWay = true;
+            }
+            else if (k == "junction" && v == "roundabout")
+            {
+                osmWay.oneWay = true;
+            }
             else if (k == "access")
-                accessValue = v;
+            {
+                if (v == "no" || v == "private")
+                    privateAccess = true;
+            }
+            else if (k == "surface")
+            {
+                osmWay.surface = v;
+            }
+            else if (k == "maxspeed")
+            {
+                osmWay.maxSpeed = v;
+            }
         }
 
-        if (!isAllowedHighway(osmWay.highwayType))
+        if (!allowed || privateAccess || osmWay.nodeIds.size() < 2)
             continue;
-
-        if (
-            accessValue == "no" ||
-            accessValue == "private"
-        )
-        {
-            continue;
-        }
-
-        if (osmWay.nodeIds.size() < 2)
-            continue;
-
-        osmWay.reverseOneWay = oneWayValue == "-1";
-
-        osmWay.oneWay =
-            oneWayValue == "yes" ||
-            oneWayValue == "1" ||
-            oneWayValue == "true" ||
-            osmWay.reverseOneWay ||
-            junctionValue == "roundabout";
 
         if (osmWay.name.empty())
             osmWay.name = "Unnamed Road";
@@ -259,65 +324,48 @@ bool OSMGraphLoader::loadFromOSM(
         ways.push_back(osmWay);
     }
 
-    // --------------------------------
-    // 3. Collect nodes used by roads
-    // --------------------------------
+    // Keep only nodes referenced by accepted roads.
+    unordered_set<int64_t> usedNodes;
 
-    unordered_set<int64_t> usedNodeIds;
-
-    for (const auto& way : ways)
+    for (const OSMWay& way : ways)
     {
-        for (int64_t nodeId : way.nodeIds)
+        for (int64_t id : way.nodeIds)
         {
-            if (nodes.count(nodeId))
-                usedNodeIds.insert(nodeId);
+            if (nodes.count(id))
+                usedNodes.insert(id);
         }
     }
 
-    // --------------------------------
-    // 4. Assign compact graph IDs
-    // --------------------------------
+    // Assign compact graph IDs and store their coordinates.
+    int nextId = 0;
 
-    int nextGraphId = 0;
-
-    for (int64_t osmId : usedNodeIds)
+    for (auto& entry : nodes)
     {
-        nodes[osmId].graphId = nextGraphId++;
-    }
-
-    // --------------------------------
-    // 5. Store graph node coordinates
-    // --------------------------------
-
-    for (const auto& entry : nodes)
-    {
-        const OSMNode& node = entry.second;
-
-        if (node.graphId >= 0)
+        if (usedNodes.count(entry.first))
         {
+            entry.second.graphId = nextId++;
+
             graph.setCoordinates(
-                node.graphId,
-                node.lat,
-                node.lon
+                entry.second.graphId,
+                entry.second.lat,
+                entry.second.lon
             );
         }
     }
 
-    // --------------------------------
-    // 6. Build graph edges and features
-    // --------------------------------
+    // Convert each OSM way into directed graph edges.
+    int roadCount = 0;
 
-    int roadsAdded = 0;
-    int featuresAdded = 0;
-
-    for (const auto& way : ways)
+    for (const OSMWay& way : ways)
     {
-        RoadFeature feature;
+        double speedKmh = getEffectiveSpeed(
+            way.highwayType,
+            way.maxSpeed
+        );
 
-        feature.id =
-            "osm-way-" + to_string(way.osmId);
-
-        feature.name = way.name;
+        double hazard =
+            getHighwayHazard(way.highwayType) *
+            getSurfaceHazard(way.surface);
 
         for (
             size_t i = 0;
@@ -328,38 +376,14 @@ bool OSMGraphLoader::loadFromOSM(
             int64_t osmFrom = way.nodeIds[i];
             int64_t osmTo = way.nodeIds[i + 1];
 
-            if (
-                !nodes.count(osmFrom) ||
-                !nodes.count(osmTo)
-            )
-            {
+            if (!nodes.count(osmFrom) || !nodes.count(osmTo))
                 continue;
-            }
 
             const OSMNode& from = nodes.at(osmFrom);
             const OSMNode& to = nodes.at(osmTo);
 
-            if (
-                from.graphId < 0 ||
-                to.graphId < 0
-            )
-            {
+            if (from.graphId < 0 || to.graphId < 0)
                 continue;
-            }
-
-            // Preserve actual OSM road geometry
-            if (feature.coordinates.empty())
-            {
-                feature.coordinates.push_back({
-                    from.lat,
-                    from.lon
-                });
-            }
-
-            feature.coordinates.push_back({
-                to.lat,
-                to.lon
-            });
 
             double distanceMeters = haversineDistance(
                 from.lat,
@@ -371,9 +395,6 @@ bool OSMGraphLoader::loadFromOSM(
             if (distanceMeters <= 0.0)
                 continue;
 
-            // Initial approximate road speed
-            double speedKmh = 30.0;
-
             double travelMinutes =
                 (distanceMeters / 1000.0) /
                 speedKmh * 60.0;
@@ -381,69 +402,60 @@ bool OSMGraphLoader::loadFromOSM(
             if (travelMinutes <= 0.0)
                 travelMinutes = 0.01;
 
-            int src = from.graphId;
-            int dest = to.graphId;
-
-            // Reverse-direction one-way road
-            if (way.reverseOneWay)
-            {
-                swap(src, dest);
-            }
-
-            graph.addRoad(
-                Road(
-                    src,
-                    dest,
-                    travelMinutes,
-                    1.0,
-                    way.name
-                )
-            );
-
-            roadsAdded++;
-
-            // Add reverse edge for two-way roads
-            if (!way.oneWay)
+            // Normal OSM direction. For oneway=-1, only add reverse below.
+            if (!way.reverseOneWay)
             {
                 graph.addRoad(
                     Road(
-                        dest,
-                        src,
+                        from.graphId,
+                        to.graphId,
                         travelMinutes,
-                        1.0,
+                        hazard,
                         way.name
                     )
                 );
 
-                roadsAdded++;
+                ++roadCount;
             }
-        }
 
-        // Store complete road feature
-        if (feature.coordinates.size() >= 2)
-        {
-            graph.addRoadFeature(feature);
-            featuresAdded++;
+            // Bidirectional road: add the reverse edge as well.
+            if (!way.oneWay && !way.reverseOneWay)
+            {
+                graph.addRoad(
+                    Road(
+                        to.graphId,
+                        from.graphId,
+                        travelMinutes,
+                        hazard,
+                        way.name
+                    )
+                );
+
+                ++roadCount;
+            }
+
+            // OSM oneway=-1: travel is allowed opposite to node order.
+            if (way.reverseOneWay)
+            {
+                graph.addRoad(
+                    Road(
+                        to.graphId,
+                        from.graphId,
+                        travelMinutes,
+                        hazard,
+                        way.name
+                    )
+                );
+
+                ++roadCount;
+            }
         }
     }
 
-    // --------------------------------
-    // 7. Display loading information
-    // --------------------------------
+    cout << "\nOSM DATA LOADED SUCCESSFULLY\n";
+    cout << "Nodes: " << nextId << endl;
+    cout << "Ways: " << ways.size() << endl;
+    cout << "Directed Road Segments: " << roadCount << endl;
 
-    cout << "\nOSM graph loaded successfully\n";
-
-    cout << "OSM nodes: "
-         << usedNodeIds.size() << endl;
-
-    cout << "OSM ways: "
-         << ways.size() << endl;
-
-    cout << "Road features: "
-         << featuresAdded << endl;
-
-    cout << "Directed roads: "
-         << roadsAdded << endl;
-
-    return roadsAdded > 0;
+    return true;
 }

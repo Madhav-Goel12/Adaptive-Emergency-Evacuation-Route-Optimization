@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from 'react'
 import { LocateFixed, Menu, Search, Wifi } from 'lucide-react'
 import EmergencyMap from '../components/EmergencyMap'
@@ -12,59 +13,86 @@ import type { Alert, Location, Road, RouteResult, Weather } from '../types'
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activePage, setActivePage] = useState<PageId>('dashboard')
+
   const [startId, setStartId] = useState('')
   const [destinationId, setDestinationId] = useState('')
+
   const [startLocation, setStartLocation] = useState<Location | null>(null)
   const [destinationLocation, setDestinationLocation] = useState<Location | null>(null)
+
   const [route, setRoute] = useState<RouteResult | null>(null)
   const [routeLoading, setRouteLoading] = useState(false)
   const [routeError, setRouteError] = useState('')
+
   const [roads, setRoads] = useState<Road[] | null>(null)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [alerts, setAlerts] = useState<Alert[] | null>(null)
+
   const [loadingData, setLoadingData] = useState({
     roads: true,
     weather: true,
     alerts: true,
   })
+
   const [query, setQuery] = useState('')
   const [focusedLocation, setFocusedLocation] = useState<Location>()
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [locationError, setLocationError] = useState('')
+
   const [reducedMotion, setReducedMotion] = useState(
     () => localStorage.getItem('aero-reduced-motion') === 'true',
   )
+
   const [compactMode, setCompactMode] = useState(
     () => localStorage.getItem('aero-compact-mode') === 'true',
   )
 
+  // Load dashboard data.
   useEffect(() => {
     api.getRoads()
       .then(setRoads)
-      .catch(() => setRoads(null))
-      .finally(() => setLoadingData((s) => ({ ...s, roads: false })))
+      .catch((error) => {
+        console.error('Road loading error:', error)
+        setRoads(null)
+      })
+      .finally(() => {
+        setLoadingData((s) => ({ ...s, roads: false }))
+      })
 
     api.getWeather()
       .then(setWeather)
-      .catch(() => setWeather(null))
-      .finally(() => setLoadingData((s) => ({ ...s, weather: false })))
+      .catch((error) => {
+        console.error('Weather loading error:', error)
+        setWeather(null)
+      })
+      .finally(() => {
+        setLoadingData((s) => ({ ...s, weather: false }))
+      })
 
     api.getAlerts()
       .then(setAlerts)
-      .catch(() => setAlerts(null))
-      .finally(() => setLoadingData((s) => ({ ...s, alerts: false })))
+      .catch((error) => {
+        console.error('Alert loading error:', error)
+        setAlerts(null)
+      })
+      .finally(() => {
+        setLoadingData((s) => ({ ...s, alerts: false }))
+      })
   }, [])
 
+  // Reduced motion preference.
   useEffect(() => {
     localStorage.setItem('aero-reduced-motion', String(reducedMotion))
     document.body.classList.toggle('reduce-motion', reducedMotion)
   }, [reducedMotion])
 
+  // Compact mode preference.
   useEffect(() => {
     localStorage.setItem('aero-compact-mode', String(compactMode))
     document.body.classList.toggle('compact-mode', compactMode)
   }, [compactMode])
 
+  // Search predefined landmarks.
   const searchMatches = useMemo(
     () =>
       query.length > 1
@@ -86,20 +114,27 @@ export default function DashboardPage() {
       setDestinationId(location.id)
       setDestinationLocation(location)
     }
+
+    setRoute(null)
+    setRouteError('')
   }
 
   function changeStart(id: string) {
     setStartId(id)
-    setStartLocation(LOCATIONS.find((location) => location.id === id) ?? null)
+
+    const location = LOCATIONS.find((item) => item.id === id) ?? null
+    setStartLocation(location)
+
     setRoute(null)
     setRouteError('')
   }
 
   function changeDestination(id: string) {
     setDestinationId(id)
-    setDestinationLocation(
-      LOCATIONS.find((location) => location.id === id) ?? null,
-    )
+
+    const location = LOCATIONS.find((item) => item.id === id) ?? null
+    setDestinationLocation(location)
+
     setRoute(null)
     setRouteError('')
   }
@@ -108,6 +143,7 @@ export default function DashboardPage() {
     setStartLocation(location)
     setStartId(location.id)
     setFocusedLocation(location)
+
     setRoute(null)
     setRouteError('')
   }
@@ -116,10 +152,12 @@ export default function DashboardPage() {
     setDestinationLocation(location)
     setDestinationId(location.id)
     setFocusedLocation(location)
+
     setRoute(null)
     setRouteError('')
   }
 
+  // Get current user location.
   function findCurrentLocation() {
     setLocationError('')
 
@@ -129,62 +167,92 @@ export default function DashboardPage() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => setUserLocation([coords.latitude, coords.longitude]),
-      () => setLocationError('Location permission was denied or unavailable.'),
-      { enableHighAccuracy: true, timeout: 8000 },
+      ({ coords }) => {
+        setUserLocation([coords.latitude, coords.longitude])
+      },
+      () => {
+        setLocationError('Location permission was denied or unavailable.')
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+      },
     )
   }
 
-  async function findRoute() {
-    setRouteError('')
-    setRoute(null)
+  // Calculate evacuation route.
+ async function findRoute() {
+  setRouteError('')
+  setRoute(null)
 
-    if (!startId || !destinationId) {
-      setRouteError('Select both a starting point and destination.')
-      return
-    }
-
-    if (startId === destinationId) {
-      setRouteError('Choose two different locations.')
-      return
-    }
-
-  
-    
-
-    setRouteLoading(true)
-
-    try {
-      setRoute(
-  await api.getRoute({
-    startId,
-    destinationId,
-    ...(startLocation
-      ? { startCoordinates: startLocation.coordinates }
-      : {}),
-    ...(destinationLocation
-      ? { destinationCoordinates: destinationLocation.coordinates }
-      : {}),
-  }),
-)
-    } catch (error) {
-  console.error('Route calculation error:', error)
-
-  setRouteError(
-    error instanceof Error
-      ? error.message
-      : 'Unknown route calculation error'
-  )
-} finally {
-      setRouteLoading(false)
-    }
+  if (!startId || !destinationId) {
+    setRouteError('Select both a starting point and destination.')
+    return
   }
 
+  if (startId === destinationId) {
+    setRouteError('Choose two different locations.')
+    return
+  }
+
+  // Resolve coordinates from selected locations or landmark data.
+  const start =
+    startLocation ??
+    LOCATIONS.find((location) => location.id === startId)
+
+  const destination =
+    destinationLocation ??
+    LOCATIONS.find((location) => location.id === destinationId)
+
+  if (!start || !destination) {
+    setRouteError(
+      'Location coordinates are missing. Please select both locations again.'
+    )
+    return
+  }
+
+  if (
+    !Array.isArray(start.coordinates) ||
+    !Array.isArray(destination.coordinates) ||
+    start.coordinates.length !== 2 ||
+    destination.coordinates.length !== 2
+  ) {
+    setRouteError('Invalid coordinates. Please select the locations again.')
+    return
+  }
+
+  setRouteLoading(true)
+
+  try {
+    const result = await api.getRoute({
+      startId,
+      destinationId,
+      startCoordinates: start.coordinates,
+      destinationCoordinates: destination.coordinates,
+    })
+
+    setRoute(result)
+  } catch (error) {
+    console.error('Route calculation error:', error)
+
+    setRouteError(
+      error instanceof Error
+        ? error.message
+        : 'Unable to calculate the evacuation route.'
+    )
+  } finally {
+    setRouteLoading(false)
+  }
+}
+
+  // Clear selected route and locations.
   function clearRoute() {
     setStartId('')
     setDestinationId('')
+
     setStartLocation(null)
     setDestinationLocation(null)
+
     setRoute(null)
     setRouteError('')
     setFocusedLocation(undefined)
@@ -223,7 +291,9 @@ export default function DashboardPage() {
       return (
         <div className="single-view">
           {mapCard(true)}
-          {locationError && <p className="location-error">{locationError}</p>}
+          {locationError && (
+            <p className="location-error">{locationError}</p>
+          )}
         </div>
       )
     }
@@ -233,9 +303,14 @@ export default function DashboardPage() {
         <div className="dashboard route-view">
           <div className="map-column">
             {mapCard(true)}
-            {locationError && <p className="location-error">{locationError}</p>}
+            {locationError && (
+              <p className="location-error">{locationError}</p>
+            )}
           </div>
-          <aside className="right-column">{planner}</aside>
+
+          <aside className="right-column">
+            {planner}
+          </aside>
         </div>
       )
     }
@@ -243,7 +318,10 @@ export default function DashboardPage() {
     if (activePage === 'roads') {
       return (
         <div className="detail-view">
-          <RoadStatusPanel data={roads} loading={loadingData.roads} />
+          <RoadStatusPanel
+            data={roads}
+            loading={loadingData.roads}
+          />
         </div>
       )
     }
@@ -252,8 +330,15 @@ export default function DashboardPage() {
       return (
         <div className="detail-view">
           <div className="info-grid">
-            <WeatherPanel data={weather} loading={loadingData.weather} />
-            <AlertPanel data={alerts} loading={loadingData.alerts} />
+            <WeatherPanel
+              data={weather}
+              loading={loadingData.weather}
+            />
+
+            <AlertPanel
+              data={alerts}
+              loading={loadingData.alerts}
+            />
           </div>
         </div>
       )
@@ -280,16 +365,31 @@ export default function DashboardPage() {
       <div className="dashboard">
         <div className="map-column">
           {mapCard()}
-          {locationError && <p className="location-error">{locationError}</p>}
+
+          {locationError && (
+            <p className="location-error">{locationError}</p>
+          )}
+
           <div className="info-grid">
-            <WeatherPanel data={weather} loading={loadingData.weather} />
-            <AlertPanel data={alerts} loading={loadingData.alerts} />
+            <WeatherPanel
+              data={weather}
+              loading={loadingData.weather}
+            />
+
+            <AlertPanel
+              data={alerts}
+              loading={loadingData.alerts}
+            />
           </div>
         </div>
 
         <aside className="right-column">
           {planner}
-          <RoadStatusPanel data={roads} loading={loadingData.roads} />
+
+          <RoadStatusPanel
+            data={roads}
+            loading={loadingData.roads}
+          />
         </aside>
       </div>
     )
@@ -320,11 +420,15 @@ export default function DashboardPage() {
                 ? 'Dehradun emergency operations'
                 : activePage.replace('-', ' ')}
             </span>
-            <h1>Adaptive Emergency Evacuation Route Optimization</h1>
+
+            <h1>
+              Adaptive Emergency Evacuation Route Optimization
+            </h1>
           </div>
 
           <div className="search-wrap">
             <Search size={18} />
+
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -347,13 +451,17 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <button className="location-button" onClick={findCurrentLocation}>
+          <button
+            className="location-button"
+            onClick={findCurrentLocation}
+          >
             <LocateFixed size={17} />
             <span>Current location</span>
           </button>
 
           <div className="freshness">
             <Wifi size={15} />
+
             <div>
               <strong>Map available</strong>
               <span>Live map tiles</span>

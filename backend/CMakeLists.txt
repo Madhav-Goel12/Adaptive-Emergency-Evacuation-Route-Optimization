@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.15)
 project(AdaptiveEmergencyEvacuationRouteOptimization LANGUAGES CXX)
 
@@ -8,8 +9,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(mongocxx REQUIRED)
 find_package(bsoncxx REQUIRED)
 find_package(CURL REQUIRED)
-find_package(httplib CONFIG REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
+
 find_package(tinyxml2 CONFIG REQUIRED)
+
 add_executable(evacuation_app
     src/menu.cpp
     src/Location.cpp
@@ -33,6 +38,6 @@ target_link_libraries(evacuation_app PRIVATE
     $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,mongo::mongocxx_static,mongo::mongocxx_shared>
     $<IF:$<TARGET_EXISTS:mongo::bsoncxx_static>,mongo::bsoncxx_static,mongo::bsoncxx_shared>
     CURL::libcurl
-    httplib::httplib
+    PkgConfig::HTTPLIB
     tinyxml2::tinyxml2
 )
