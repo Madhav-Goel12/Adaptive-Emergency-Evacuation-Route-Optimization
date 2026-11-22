@@ -1,4 +1,4 @@
-Adaptive Emergency Evacuation Route Optimization
+# Adaptive Emergency Evacuation Route Optimization
 
 A C++ and React-based emergency evacuation-routing prototype for Dehradun, India. The application loads road-network data from OpenStreetMap (OSM), models the network as a weighted graph, and uses Dijkstra's algorithm to calculate a minimum-cost route between two selected locations.
 
