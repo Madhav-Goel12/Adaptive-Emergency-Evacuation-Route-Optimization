@@ -1,5 +1,6 @@
 
 #include "Graph.h"
+#include "apiclient.h"
 #include "RouteOptimizer.h"
 #include "httplib.h"
 
@@ -12,6 +13,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <unordered_map>
+#include <unordered_set>
+#include <queue>
+#include <functional>
 
 using namespace std;
 
@@ -181,6 +185,52 @@ namespace
         return "safe";
     }
 
+    // Shortest weighted distances from a node. When reverse=true, traverse
+    // incoming edges so the result is the cost from each node to destination.
+    vector<double> routeDistances(Graph& graph, int start, bool reverse)
+    {
+        const auto& adjacency = graph.getAdjList();
+        const int count = static_cast<int>(adjacency.size());
+        vector<vector<pair<int, double>>> edges(count);
+
+        for (int u = 0; u < count; ++u)
+        {
+            for (const auto& road : adjacency[u])
+            {
+                if (road.getBlockedStatus()) continue;
+                const int v = road.getDest();
+                if (v < 0 || v >= count) continue;
+                if (reverse) edges[v].push_back({u, road.getCost()});
+                else edges[u].push_back({v, road.getCost()});
+            }
+        }
+
+        vector<double> distances(count, numeric_limits<double>::infinity());
+        using Entry = pair<double, int>;
+        priority_queue<Entry, vector<Entry>, greater<Entry>> queue;
+        if (start < 0 || start >= count) return distances;
+        distances[start] = 0.0;
+        queue.push({0.0, start});
+
+        while (!queue.empty())
+        {
+            auto [cost, u] = queue.top();
+            queue.pop();
+            if (cost != distances[u]) continue;
+            for (const auto& edge : edges[u])
+            {
+                const int v = edge.first;
+                const double next = cost + edge.second;
+                if (next < distances[v])
+                {
+                    distances[v] = next;
+                    queue.push({next, v});
+                }
+            }
+        }
+        return distances;
+    }
+
     // --------------------------------
     // API: GET /api/health
     // --------------------------------
@@ -318,11 +368,35 @@ namespace
         httplib::Response& response
     )
     {
-        // No live weather provider is connected yet.
-        response.set_content(
-            "{}",
-            "application/json"
-        );
+        APIClient weather;
+        if (!weather.getData(30.3165, 78.0322))
+        {
+            response.status = 502;
+            response.set_content(
+                R"({"error":"Unable to retrieve current Dehradun weather from Open-Meteo"})",
+                "application/json"
+            );
+            return;
+        }
+
+        string condition = "Clear sky";
+        if (weather.weatherCode == 1 || weather.weatherCode == 2) condition = "Mainly clear / partly cloudy";
+        else if (weather.weatherCode == 3) condition = "Overcast";
+        else if (weather.weatherCode >= 45 && weather.weatherCode <= 48) condition = "Fog";
+        else if (weather.weatherCode >= 51 && weather.weatherCode <= 67) condition = "Drizzle or rain";
+        else if (weather.weatherCode >= 71 && weather.weatherCode <= 77) condition = "Snow";
+        else if (weather.weatherCode >= 80 && weather.weatherCode <= 82) condition = "Rain showers";
+        else if (weather.weatherCode >= 95) condition = "Thunderstorm";
+
+        ostringstream json;
+        json << fixed << setprecision(1)
+             << "{\"temperature\":" << weather.temp
+             << ",\"humidity\":" << weather.humidity
+             << ",\"precipitation\":" << weather.rain
+             << ",\"windSpeed\":" << weather.wind
+             << ",\"weatherCode\":" << weather.weatherCode
+             << ",\"condition\":\"" << escapeJson(condition) << "\"}";
+        response.set_content(json.str(), "application/json");
     }
 
     // --------------------------------
@@ -516,11 +590,103 @@ namespace
             );
         }
 
-        ostringstream details;
+        // Find risky/blocked road segments that are relevant to this
+        // origin-destination corridor, rather than listing network-wide risks.
+        const vector<double> fromStart = routeDistances(graph, source, false);
+        const vector<double> toDestination = routeDistances(graph, destination, true);
+        unordered_set<long long> selectedEdges;
+        const long long nodeCount = static_cast<long long>(adjacency.size());
+        for (size_t i = 0; i + 1 < path.size(); ++i)
+        {
+            const int a = min(path[i], path[i + 1]);
+            const int b = max(path[i], path[i + 1]);
+            selectedEdges.insert(static_cast<long long>(a) * nodeCount + b);
+        }
 
+        struct AvoidedRoad
+        {
+            int from;
+            int to;
+            string name;
+            string status;
+            string reason;
+            double score;
+            double hazardFactor;
+        };
+        vector<AvoidedRoad> avoided;
+        unordered_set<string> reportedRoads;
+       // Only consider alternatives reasonably close to the selected journey.
+const double relevanceLimit = totalCost * 1.40 + 2.0;
+
+        for (int u = 0; u < static_cast<int>(adjacency.size()); ++u)
+        {
+            for (const auto& road : adjacency[u])
+            {
+                const int v = road.getDest();
+                if (v < 0 || v >= static_cast<int>(adjacency.size())) continue;
+                const int edgeA = min(u, v);
+                const int edgeB = max(u, v);
+                if (selectedEdges.count(static_cast<long long>(edgeA) * nodeCount + edgeB)) continue;
+
+                const string status = getRoadStatus(road);
+                if (status == "safe") continue;
+                if (!isfinite(fromStart[u]) || !isfinite(toDestination[v])) continue;
+
+                const double factor = road.getTime() > 0.0
+    ? road.getCost() / road.getTime() : 1.0;
+
+// Estimate the complete origin-to-destination alternative.
+// For blocked roads, use their base travel time for comparison;
+// never treat a blocked edge as a usable zero-cost shortcut.
+const double comparisonCost = (status == "blocked")
+    ? max(road.getTime(), road.getCost())
+    : road.getCost();
+
+const double candidateScore =
+    fromStart[u] + comparisonCost + toDestination[v];
+
+// Exclude roads that are already part of an equally good or
+// better journey, and ignore alternatives that are too expensive.
+if (candidateScore <= totalCost + 0.01) continue;
+if (candidateScore > relevanceLimit) continue;
+
+                string name = road.getName();
+                if (name.empty()) name = "Unnamed road segment " + to_string(edgeA) + "-" + to_string(edgeB);
+                // Identify each road segment by its unique pair of graph nodes.
+// Different segments with the same road name must remain separate.
+const long long reportKey =
+    static_cast<long long>(edgeA) * nodeCount + edgeB;
+
+if (reportedRoads.count(to_string(reportKey))) continue;
+reportedRoads.insert(to_string(reportKey));
+
+                string reason;
+                if (status == "blocked")
+                    reason = "Excluded because this road segment is marked blocked in the road network.";
+                else if (status == "congested")
+                    reason = "Not selected because its hazard-adjusted travel cost is " + to_string(factor).substr(0, 4) + " times its base travel time; a lower-cost alternative was found.";
+                else
+                    reason = "Not selected because its hazard-adjusted travel cost is " + to_string(factor).substr(0, 4) + " times its base travel time; a lower-cost alternative was found.";
+
+                avoided.push_back({u, v, name, status, reason, candidateScore, factor});
+            }
+        }
+
+        sort(avoided.begin(), avoided.end(), [](const AvoidedRoad& a, const AvoidedRoad& b) {
+            const auto severity = [](const string& status) {
+                if (status == "blocked") return 0;
+                if (status == "congested") return 1;
+                return 2;
+            };
+            if (severity(a.status) != severity(b.status)) return severity(a.status) < severity(b.status);
+            return a.score < b.score;
+        });
+        if (avoided.size() > 6) avoided.resize(6);
+
+        ostringstream details;
         details << "Route calculated using Dijkstra algorithm. "
-                << path.size()
-                << " graph nodes included.";
+                << path.size() << " graph nodes included. "
+                << avoided.size() << " relevant risky or blocked alternative road segments identified.";
 
         ostringstream json;
 
@@ -552,6 +718,24 @@ namespace
                  << "]";
         }
 
+        json << "],";
+
+        json << "\"avoidedRoads\":[";
+        for (size_t i = 0; i < avoided.size(); ++i)
+        {
+            if (i) json << ",";
+            const auto& item = avoided[i];
+            json << "{\"id\":\"" << item.from << "-" << item.to
+                 << "\",\"name\":\"" << escapeJson(item.name)
+                 << "\",\"status\":\"" << item.status
+                 << "\",\"reason\":\"" << escapeJson(item.reason)
+                 << "\",\"hazardFactor\":" << item.hazardFactor
+                 << ",\"coordinates\":[["
+                 << graph.getCoordinates(item.from).latitude << ","
+                 << graph.getCoordinates(item.from).longitude << "],["
+                 << graph.getCoordinates(item.to).latitude << ","
+                 << graph.getCoordinates(item.to).longitude << "]]" << "}";
+        }
         json << "],";
 
         json << "\"details\":\""

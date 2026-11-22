@@ -1,51 +1,81 @@
-import { AlertCircle, CloudSun, Eye, ShieldCheck } from 'lucide-react'
-import type { Alert, Road, Weather } from '../types'
+import { AlertTriangle, CloudSun, Route, ShieldAlert } from 'lucide-react'
+import type { Alert, Road, RouteResult, Weather } from '../types'
 
-const statusLabels = { safe: 'Safe', risky: 'Risky', congested: 'Congested', blocked: 'Blocked' }
-
-interface DataPanelProps<T> {
-  data: T | null
-  loading: boolean
+export function WeatherPanel({ data, loading }: { data: Weather | null; loading: boolean }) {
+  return (
+    <section className="panel info-card">
+      <div className="info-icon weather"><CloudSun size={23} /></div>
+      <div className="info-copy">
+        <span>Weather conditions · Dehradun</span>
+        {loading ? <strong>Loading weather…</strong> : data?.temperature != null ? (
+          <>
+            <strong>{data.temperature}°C</strong>
+            <p>{data.condition ?? 'Current conditions'}{data.humidity != null ? ` · Humidity ${data.humidity}%` : ''}</p>
+            {data.precipitation != null && <p>Precipitation: {data.precipitation} mm</p>}
+            {data.windSpeed != null && <p>Wind: {data.windSpeed} km/h</p>}
+            {data.updatedAt && <p>Updated: {data.updatedAt}</p>}
+          </>
+        ) : <strong>Weather data unavailable</strong>}
+      </div>
+    </section>
+  )
 }
 
-export function RoadStatusPanel({ data: roads, loading }: DataPanelProps<Road[]>) {
+export function AlertPanel({ data: _data, route, loading }: { data: Alert[] | null; route: RouteResult | null; loading: boolean }) {
+  const avoided = route?.avoidedRoads ?? []
+  return (
+    <section className="panel info-card" style={{ alignItems: 'flex-start' }}>
+      <div className="info-icon alert"><AlertTriangle size={23} /></div>
+      <div className="info-copy" style={{ width: '100%' }}>
+        <span>Emergency alerts · Route-specific analysis</span>
+        {!route ? (
+          <strong>Calculate a route to see avoided roads</strong>
+        ) : loading ? (
+          <strong>Checking route alternatives…</strong>
+        ) : (
+          <>
+            <strong>{avoided.length} relevant road alternatives avoided</strong>
+            <p><Route size={13} /> Reasons for this origin and destination</p>
+            {avoided.length === 0 ? (
+              <p>No risky or blocked alternatives were identified near this route.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 9, marginTop: 10 }}>
+                {avoided.map((road) => (
+                  <div key={road.id} style={{ padding: 10, borderRadius: 8, background: 'rgba(255,255,255,.045)', borderLeft: `3px solid ${road.status === 'blocked' ? '#ef4444' : '#f59e0b'}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                      <strong style={{ margin: 0 }}>{road.name}</strong>
+                      <span className={`status-text ${road.status}`}>{road.status}</span>
+                    </div>
+                    <p style={{ display: 'block', lineHeight: 1.5 }}>{road.reason}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
+export function RoadStatusPanel({ data, loading }: { data: Road[] | null; loading: boolean }) {
   return (
     <section className="panel compact-panel">
-      <div className="panel-heading"><div><span className="eyebrow">Network overview</span><h2>Road conditions</h2></div></div>
-      <div className="road-list">
-        {loading && <p className="data-state">Loading road conditions…</p>}
-        {!loading && roads === null && <p className="data-state">Road conditions unavailable</p>}
-        {!loading && roads?.length === 0 && <p className="data-state">No road conditions reported</p>}
-        {roads?.map((road) => <div className="road-row" key={road.id}><span className={`status-dot ${road.status}`} /><strong>{road.name}</strong><span className={`status-text ${road.status}`}>{statusLabels[road.status]}</span></div>)}
+      <div className="panel-heading">
+        <div><span className="eyebrow">Network overview</span><h2>Road conditions</h2></div>
+        <ShieldAlert size={20} />
       </div>
-      {roads && roads.length > 0 && <p className="safety-note"><ShieldCheck size={14} />Status is informational only; verify with local authorities.</p>}
-    </section>
-  )
-}
-
-export function WeatherPanel({ data: weather, loading }: DataPanelProps<Weather>) {
-  return (
-    <section className="panel info-card">
-      <div className="info-icon weather"><CloudSun size={22} /></div>
-      <div className="info-copy">
-        <span>Weather conditions</span>
-        <strong>{loading ? 'Loading weather…' : weather?.condition ?? 'Weather data unavailable'}</strong>
-        {weather?.visibility && <p><Eye size={13} /> Visibility {weather.visibility}</p>}
-      </div>
-    </section>
-  )
-}
-
-export function AlertPanel({ data: alerts, loading }: DataPanelProps<Alert[]>) {
-  const alert = alerts?.[0]
-  return (
-    <section className="panel info-card">
-      <div className="info-icon alert"><AlertCircle size={22} /></div>
-      <div className="info-copy">
-        <span>Emergency alerts</span>
-        <strong>{loading ? 'Checking for alerts…' : alerts === null ? 'Alert data unavailable' : alert?.title ?? 'No active emergency alerts'}</strong>
-        {alert?.description && <p>{alert.description}</p>}
-      </div>
+      {loading ? <p className="data-state">Loading road conditions…</p> : !data?.length ? <p className="data-state">Road conditions unavailable.</p> : (
+        <div className="road-list">
+          {data.map((road) => (
+            <div className="road-row" key={road.id}>
+              <i className={`status-dot ${road.status}`} />
+              <strong>{road.name}</strong>
+              <span className={`status-text ${road.status}`}>{road.status}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

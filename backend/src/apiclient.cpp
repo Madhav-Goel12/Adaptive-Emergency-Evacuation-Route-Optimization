@@ -1,6 +1,4 @@
-
 #include "apiclient.h"
-
 #include <curl/curl.h>
 #include <cstdlib>
 #include <iostream>
@@ -16,7 +14,7 @@ static size_t writeData(void* ptr, size_t size, size_t nmemb, void* data)
 }
 
 APIClient::APIClient()
-    : temp(0), rain(0), wind(0), weatherCode(0)
+    : temp(0), rain(0), wind(0), weatherCode(0), humidity(0)
 {
 }
 
@@ -35,7 +33,7 @@ bool APIClient::getData(double lat, double lon)
         "https://api.open-meteo.com/v1/forecast?latitude=" +
         to_string(lat) +
         "&longitude=" + to_string(lon) +
-        "&current=temperature_2m,precipitation,wind_speed_10m,weather_code";
+        "&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&timezone=Asia%2FKolkata";
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeData);
@@ -100,9 +98,10 @@ bool APIClient::getData(double lat, double lon)
         return true;
     };
 
-    double newTemp, newRain, newWind, newCode;
+    double newTemp, newHumidity, newRain, newWind, newCode;
 
     if (!readNumber("temperature_2m", newTemp) ||
+        !readNumber("relative_humidity_2m", newHumidity) ||
         !readNumber("precipitation", newRain) ||
         !readNumber("wind_speed_10m", newWind) ||
         !readNumber("weather_code", newCode)) {
@@ -111,6 +110,7 @@ bool APIClient::getData(double lat, double lon)
     }
 
     temp = newTemp;
+    humidity = newHumidity;
     rain = newRain;
     wind = newWind;
     weatherCode = static_cast<int>(newCode);

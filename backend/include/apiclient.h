@@ -1,21 +1,19 @@
 #ifndef APICLIENT_H
 #define APICLIENT_H
 
-#include <iostream>
 #include <string>
-using namespace std;
 
-class APIClient
-{
+class APIClient {
 public:
     double temp;
     double rain;
     double wind;
     int weatherCode;
+    double humidity;
+    std::string observationTime;
 
     APIClient();
-
-    bool getData(double lat,double lon);
+    bool getData(double lat, double lon);
     int getStatus();
     void showData();
 };

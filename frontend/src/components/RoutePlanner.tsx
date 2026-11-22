@@ -312,6 +312,18 @@ export default function RoutePlanner(props: RoutePlannerProps) {
           </div>
         </div>
       )}
+
+      {props.route?.alerts && props.route.alerts.length > 0 && (
+        <div className="route-alerts">
+          <strong>Warnings on this route</strong>
+          {props.route.alerts.map((alert) => (
+            <div className={`alert-item ${alert.severity}`} key={alert.id}>
+              <b>{alert.title}</b>
+              <p>{alert.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

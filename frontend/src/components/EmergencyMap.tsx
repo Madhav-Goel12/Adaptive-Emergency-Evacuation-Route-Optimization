@@ -542,6 +542,27 @@ export default function EmergencyMap({
         </Marker>
       )}
 
+      {route?.avoidedRoads?.map((road) => (
+        road.coordinates.length > 1 && (
+          <Polyline
+            key={`avoided-${road.id}`}
+            positions={road.coordinates}
+            pathOptions={{
+              color: road.status === 'blocked' ? '#ef4444' : '#f59e0b',
+              weight: 5,
+              opacity: 0.85,
+              dashArray: '7 7',
+            }}
+          >
+            <Popup>
+              <strong>{road.name}</strong><br />
+              {road.status.toUpperCase()}<br />
+              {road.reason}
+            </Popup>
+          </Polyline>
+        )
+      ))}
+
       {route && route.coordinates.length > 1 && (
         <Polyline
           positions={route.coordinates}

@@ -39,7 +39,7 @@ int main()
     Graph graph(0);
 
 bool osmLoaded = OSMGraphLoader::loadFromOSM(
-    "backend/data/dehradun-roads.osm",
+    "data/dehradun-roads.osm",
     graph
 );
 

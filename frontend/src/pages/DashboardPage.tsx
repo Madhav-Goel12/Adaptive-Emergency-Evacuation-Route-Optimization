@@ -337,6 +337,7 @@ export default function DashboardPage() {
 
             <AlertPanel
               data={alerts}
+              route={route}
               loading={loadingData.alerts}
             />
           </div>
@@ -378,6 +379,7 @@ export default function DashboardPage() {
 
             <AlertPanel
               data={alerts}
+              route={route}
               loading={loadingData.alerts}
             />
           </div>
