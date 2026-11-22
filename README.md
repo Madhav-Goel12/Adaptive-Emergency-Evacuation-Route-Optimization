@@ -384,10 +384,9 @@ The frontend must reach the backend through the Codespaces forwarded backend URL
 3. **Road-risk classification:** Risk classifications depend on configured cost and blocked-status data. They are not independently verified hazard reports.
 4. **Live traffic and emergency feeds:** Live traffic, verified road closures, and authoritative emergency feeds are not integrated.
 5. **Weather-based recalculation:** Weather data is retrieved from Open-Meteo. The application should not be assumed to update every graph edge or reroute automatically in response to weather unless that behaviour is explicitly implemented and tested.
-6. **Alternative-road filtering:** Alternative-road results depend on the backend's corridor and relevance filtering. Their accuracy should be validated against known origin-to-destination test cases.
-7. **Large road-network responses:** The `/api/roads` response can be large for a detailed road graph. Filtering or pagination may be needed.
-8. **Optional MongoDB persistence:** MongoDB persistence depends on valid environment configuration and an available MongoDB deployment.
-9. **Prototype status:** The application has not been validated for operational emergency response.
+6. **Large road-network responses:** The `/api/roads` response can be large for a detailed road graph. Filtering or pagination may be needed.
+7. **Optional MongoDB persistence:** MongoDB persistence depends on valid environment configuration and an available MongoDB deployment.
+8. **Prototype status:** The application has not been validated for operational emergency response.
 
 ## Future Improvements
 
